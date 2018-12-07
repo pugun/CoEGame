@@ -1,0 +1,24 @@
+{
+	"development": {
+		"username": "root",
+		"password": "root",
+		"database": "coedb",
+		"host": "localhost",
+		"dialect": "mysql",
+		"logging": false
+	},
+	"test": {
+		"username": "root",
+		"password": "root",
+		"database": "coe_test",
+		"host": "localhost",
+		"dialect": "mysql"
+	},
+	"production": {
+		"username": "root",
+		"password": "root",
+		"database": "coe_production",
+		"host": "localhost",
+		"dialect": "mysql"
+	}
+}
