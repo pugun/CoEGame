@@ -1,20 +1,24 @@
 module.exports = (sequelize, DataTypes) => {
-    var Inventory = sequelize.define("Inventory", {
+    var Qr = sequelize.define("Qr", {
         id: {
             type: DataTypes.INTEGER(11),
             allowNull: false,
             primaryKey: true,
             autoIncrement: true
+        },
+        qrcode: {
+            type: DataTypes.STRING(50),
+            allowNull: false
         }
+
     },{
-		tableName: "inventories",
+		tableName: "Qr",
         timestamps: true
 	});
 
-    Inventory.associate = models => {
-        Inventory.belongsTo(models.User);
-        Inventory.belongsTo(models.Item);
+    Qr.associate = models => {
+        Qr.belongsTo(models.Item);
 	 };
     
-    return Inventory;
+    return Qr;
 };

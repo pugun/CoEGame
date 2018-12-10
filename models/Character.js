@@ -6,6 +6,10 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             autoIncrement: true
         },
+        hp: {
+            type: DataTypes.INTEGER(11),
+            allowNull: true
+        },
         head: {
             type: DataTypes.INTEGER(11),
             allowNull: true

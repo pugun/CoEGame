@@ -6,12 +6,16 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var itemsRouter = require('./routes/items');
 
 var app = express();
 var passport = require("passport");
 var session = require("express-session");
 
 var models = require("./models");
+
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -35,6 +39,7 @@ app.use(passport.session());
 // Routing
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/items', itemsRouter);
 
 //Sync Database
 models.sequelize.sync().then(function () {
@@ -61,5 +66,9 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
+//listen
+io.on('connection', function(socket){
+	console.log('a user connected');
+});
 
 module.exports = app;

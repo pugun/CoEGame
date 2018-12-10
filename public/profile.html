@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+        let atk = 3;
+        let matk = 2;
+        let def = 1;
+        let mdef = 1;
+        const root = "http://" + window.location.host + "/users/";
+        function getUri(name) { return root + name; }
+
+        $(document).ready(function () {
+            getUserInfo()
+        });
+
+        function getUserInfo() {
+            get("getUserInfo", res => {
+                if (res.ok) {
+                    res.json()
+                        .then(json => {
+                            user = json;                            
+                            hp = 15 + user.head.hp + user.body.hp + user.weapon.hp;
+                            atk =  user.head.attack + user.body.attck + user.weapon.attck;
+                            matk =  user.head.mattack + user.body.mattck + user.weapon.mattck;
+                            def =  user.head.def + user.body.def + user.weapon.def;
+                            mdef =  user.head.mdef + user.body.mdef + user.weapon.mdef;
+                            
+                            console.log(json);
+                            $(".name").html(user.username);
+                            let hptext = user.hp + "/" + hp;
+                            $("#HP").html(hptext);
+                            
+                            $("#atk").html()
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
+                }
+            });
+        }
+
+        function get(endPoint, func) {
+            try {
+                fetch(getUri(endPoint), { method: "GET", credentials: "include" })
+                    .then(response => {
+                        func(response);
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+            }
+            catch (err) {
+                alert(err);
+            }
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        html {
+
+            background-image: linear-gradient(#E8F5CA, #D4B82E);
+            height: 100%;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .mobile-app-icon-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            display: -webkit-flex;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-align-items: center;
+            -ms-flex-align: center;
+            align-items: center;
+            -webkit-justify-content: space-around;
+            -ms-flex-pack: distribute;
+            justify-content: space-around;
+            background: rgb(255, 255, 255);
+            opacity: 0.7;
+
+            margin: 0;
+        }
+
+        .mobile-app-icon-bar button {
+            padding: 1.25rem;
+            cursor: pointer;
+        }
+
+        .mobile-app-icon-bar button svg,
+        .mobile-app-icon-bar button i,
+        .mobile-app-icon-bar button img,
+        .mobile-app-icon-bar img {
+            font-size: 2rem;
+            max-height: 2.5rem;
+            max-width: 2.5rem;
+            padding: 1.25rem;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+    <div class="mobile-app-icon-bar">
+        <!-- <button><i class="fa fa-picture-o" aria-hidden="true"></i></button>
+        <button><i class="fa fa-map-marker" aria-hidden="true"></i></button>
+        <button><i class="fa fa-upload" aria-hidden="true"></i></button>
+        <button><i class="fa fa-list-ul" aria-hidden="true"></i></button> -->
+        <a href="#"><img src="/images/buttons/fight.png"></a>
+        <a href="#"><img src="/images/buttons/scan.png"></a>
+        <a href="#"><img src="/images/buttons/inventory.png"></a>
+        <a href="#"><img src="/images/buttons/quest.png"></a>
+    </div>
+
+
+    <div>
+        <h1 class="name">.......d...</h1>
+    </div>
+
+    <div>
+        <h2 id="HP">10</h2>
+    </div>
+
+    <div class="pic">
+        <img class="pic" src="/images/00.png">
+    </div>
+
+    <div class="info">
+        <table style="width:100%">
+            <tr>
+                <td>Attack</td>
+                <td id="atk">3</td>
+            </tr>
+            <tr>
+                <td>M.Attack</td>
+                <td id="matk">2</td>
+            </tr>
+            <tr>
+                <td>Defend</td>
+                <td id="def">1</td>
+            </tr>
+            <tr>
+                <td>M.Defend</td>
+                <td id="mdef">1</td>
+            </tr>
+        </table>
+    </div>
+</body>
+
+</html>
