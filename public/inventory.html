@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<link href="https://fonts.googleapis.com/css?family=Kanit" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="./javascripts/getPost.js"></script>
+	<script>
+		$(document).ready(function () {
+			genTable();
+			getInventory();
+		});
+
+		
+
+		function genTable() {
+			let NUM_COLS = 6
+			let NUM_ROWS = 3
+			let table = document.getElementById("item-table");
+			for (let i = 0; i < NUM_ROWS; i++) {
+				let tr = document.createElement("tr");
+				for (let j = 0; j < NUM_COLS; j++) {
+					let td = document.createElement("td");
+					td.id = i * NUM_COLS + j;
+					td.className = "item-tabledata";
+					//td.innerHTML = td.id;
+					let img = document.createElement("img");
+					img.id = "img" + (i * NUM_COLS + j);
+					td.appendChild(img);
+					tr.appendChild(td);
+				}
+				table.appendChild(tr);
+			}
+
+			let slotTable = document.getElementById("slot-table");
+			let tr = document.createElement("tr");
+			for (let j = 0; j < 3; j++) {
+				let td = document.createElement("td");
+				td.id = j+1;
+				td.className = "slot-tabledata";
+				// td.innerHTML = td.id;
+				let img = document.createElement("img");
+				img.id = "imgs" + (j + 1);
+				td.appendChild(img);
+				tr.appendChild(td);
+			}
+			slotTable.appendChild(tr);
+		}
+
+		function getInventory() {
+			try {
+				get("/getInventory", res => {
+					if (res.ok) {
+						res.json()
+							.then(json => {
+								let inventory = json;
+								console.log(inventory);
+								for(let i = 0 ; i<inventory.length;i++) {
+									console.log('/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
+									$("#img" + i).attr('src', '/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
+									$("#img" + i).click(function() {
+										// if(inventory[i]["Item.slot"] == 1) {
+											console.log("sdfsdf");
+											$("#imgs" + inventory[i]["Item.slot"]).attr('src', '/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
+										// }
+									});
+								}
+							})
+							.catch(err => {
+								console.log(err);
+							});
+					}
+				});
+			}
+			catch (err) {
+				alert(err);
+			}
+		}
+	</script>
+	<style>
+		html {
+			background-image: linear-gradient(#E8F5CA, #D4B82E);
+			height: 100vh;
+			background-size: fill;
+			background-repeat: no-repeat;
+		}
+
+		.grid-container {
+			display: grid;
+			grid-template-rows: 20vh 20vh 20vh 20vh;
+			/* background-color: #2196F3; */
+			padding: 10px;
+		}
+
+		.grid-item {
+			/* background-color: rgba(255, 255, 255, 0.8); */
+			/* border: 1px solid rgba(0, 0, 0, 0.8); */
+			padding: 10px;
+			/* font-size: 30px; */
+			text-align: center;
+		}
+
+		table#item-table {
+			border-collapse: collapse;
+			border-spacing: 0;
+			height: 100%;
+		}
+
+		td.item-tabledata {
+			/* border: 1px solid black; */
+			width: 15vh;
+		}
+
+		table#slot-table {
+			border-spacing: 5vh;
+			height: 100%;
+		}
+
+		td.slot-tabledata {
+			border: 1px solid black;
+			width: 15vh;
+		}
+
+		img {
+			width: 70px;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="grid-container">
+		<div class="grid-item">EQUIPMENT</div>
+		<div class="grid-item">CHARACTER</div>
+		<div class="grid-item">
+			<table id="slot-table"></table>
+		</div>
+		<div class="grid-item">
+			<table id="item-table"></table>
+		</div>
+	</div>
+</body>
+
+</html>

@@ -23,7 +23,9 @@ router.post("/addItem", isLoggedIn, (req, res) => {
     slot: req.body.slot,
     description: req.body.description,
     AbilityId: req.body.AbilityId,
-    name: req.body.name
+    name: req.body.name,
+	pic: req.body.pic,
+	tier: req.body.tier
   }).then(result => {
     res.sendStatus(200);
   }).catch(err => {
@@ -43,7 +45,9 @@ router.post("/updateItem", isLoggedIn, (req, res) => {
       slot: req.body.slot,
       description: req.body.description,
       AbilityId: req.body.AbilityId,
-      name: req.body.name
+	  name: req.body.name,
+	  pic: req.body.pic,
+	  tier: req.body.tier
     }, {
         where: { id: req.body.id }
       }, { transaction: t });

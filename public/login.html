@@ -2,85 +2,114 @@
 <html>
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("#login-form").submit(e => {
-                e.preventDefault();
-                login();
-            });
-        });
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="https://fonts.googleapis.com/css?family=Kanit" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="./javascripts/getPost.js"></script>
+	<script>
+		"use strict";
+		$(document).ready(function () {
+			$("#login-form").submit(e => {
+				e.preventDefault();
+				login();
+			});
+		});
 
+		function login() {
+			post($("#login-form").serializeArray(), "login", res => {
+				if (res.ok) {
+					window.location = "/profile.html";
+				} else {
+					alert("Wrong username or password");
+				}
+			});
+		}
+	</script>
+	<!-- wait for above -->
+	<style>
+		html {
+			background-image: linear-gradient(#E8F5CA, #D4B82E);
+			height: 100vh;
+			background-size: fill;
+			background-repeat: no-repeat;
+			font-family: 'Kanit';
+		}
 
-        function login() {
-            post($("#login-form"), "login", res => {
-                if (res.ok) {
-                    window.location = "/profile.html";
-                } else {
-                    alert("Wrong username or password");
-                }
-            });
-        }
+		.grid-container {
+			display: grid;
+			grid-template-rows: 40vh 60vh;
+		}
 
-        const root = "http://" + window.location.host + "/users/";
-        function getUri(name) { return root + name; }
+		.grid_input {
+			display: grid;
+			grid-template-columns: 30% 70%;
+			grid-gap: 5px;
+		}
+		/* .grid_input > .item1, .grid_input > .item3 {
+			justify-self: end;
+		} */
 
-        function post(form, endPoint, func) {
-            try {
-                console.log(JSON.stringify(form));
-                fetch(getUri(endPoint), PostOptions(formToObject(form.serializeArray())))
-                    .then(response => {
-                        func(response);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-            }
-            catch (err) {
-                alert(err);
-            }
-        }
+		.logo > img {
+			width: 50vh;
+			
+		}
 
-        function PostOptions(obj) {
-            return options = {
-                method: "POST",
-                body: JSON.stringify(obj),
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include"
-            };
-        }
+		.logo {
+			justify-self: center;
+			align-self: center;
+		}
+		.login {
+			justify-self: center;
+		}
+		.buttonHolder {
+			text-align: center;
+		}
+		input[type=button], input[type=submit] {
+			/* opacity: 0.5; */
+			border-radius: 25px;
+			padding: 10px 20px 10px 20px ; 
+			border: 2px solid rgb(81, 82, 81);
+			background: rgba(255, 255, 255, 0.2);
+			margin: 20px 0 0 0;
+		}
+		input[type=button]:hover, input[type=submit]:hover {
+			/* opacity: 1; */
+			background: rgba(255, 255, 255, 0.8); 
+		}
 
-        function formToObject(obj) {
-            resultObj = new Object();
-            for (i = 0; i < obj.length; i++) {
-                resultObj[obj[i]["name"]] = obj[i]["value"];
-            }
-            return resultObj;
-        }
-    </script>
-
+		input[type=text], input[type=password] {
+			background: transparent;
+    		border: none;
+    		border-bottom: 1px solid #000000;
+			padding: 0 0 0 4px;
+		}
+		
+		.item1, .item3 {
+			font-weight: bold;
+		}
+	</style>
 </head>
 
 <body>
-
-    <h2>Login Form</h2>
-
-    <div id="login">
-        <form id="login-form" action="#" method="POST">
-            Username: <input type="text" name="username" value="test4" /><br /><br />
-            Password: <input type="password" name="password" value="test4" /><br /><br />
-            <input type="submit" value="Login" />
-            <input type="button" value="Register" onclick=" window.location = '/register.html'"/>
-            
-        </form>
-    </div>
-    
-
-
-
+	<div class="grid-container">
+		<div class="logo"><img src="/images/Logos/logo.png"></div>
+		<div class="login">
+			<div id="login">
+				<form id="login-form" action="#" method="POST">
+					<div class="grid_input">
+						<div class="item1">Username:</div>
+						<div class="item2"><input type="text" name="username" value="test4" /></div>
+						<div class="item3">Password:</div>
+						<div class="item4"><input type="password" name="password" value="test4" /></div>
+					</div>
+					<div class="buttonHolder">
+						<input type="submit" value="Login" />
+						<input type="button" value="Register" onclick=" window.location = '/register.html'" />
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
 </body>
 
 </html>

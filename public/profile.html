@@ -2,158 +2,268 @@
 <html>
 
 <head>
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script>
-        let atk = 3;
-        let matk = 2;
-        let def = 1;
-        let mdef = 1;
-        const root = "http://" + window.location.host + "/users/";
-        function getUri(name) { return root + name; }
+	<link href="https://fonts.googleapis.com/css?family=Kanit" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="./javascripts/getPost.js"></script>
+	<script>
+		"use strict";
 
-        $(document).ready(function () {
-            getUserInfo()
-        });
+		let hp = 15;
+		let atk = 3;
+		let matk = 2;
+		let def = 1;
+		let mdef = 1;
 
-        function getUserInfo() {
-            get("getUserInfo", res => {
-                if (res.ok) {
-                    res.json()
-                        .then(json => {
-                            user = json;                            
-                            hp = 15 + user.head.hp + user.body.hp + user.weapon.hp;
-                            atk =  user.head.attack + user.body.attck + user.weapon.attck;
-                            matk =  user.head.mattack + user.body.mattck + user.weapon.mattck;
-                            def =  user.head.def + user.body.def + user.weapon.def;
-                            mdef =  user.head.mdef + user.body.mdef + user.weapon.mdef;
-                            
-                            console.log(json);
-                            $(".name").html(user.username);
-                            let hptext = user.hp + "/" + hp;
-                            $("#HP").html(hptext);
-                            
-                            $("#atk").html()
-                        })
-                        .catch(err => {
-                            console.log(err);
-                        });
-                }
-            });
-        }
+		$(document).ready(function () {
+			getUserInfo();
+		});
 
-        function get(endPoint, func) {
-            try {
-                fetch(getUri(endPoint), { method: "GET", credentials: "include" })
-                    .then(response => {
-                        func(response);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-            }
-            catch (err) {
-                alert(err);
-            }
-        }
-    </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        html {
+		function getUserInfo() {
+			try {
+				get("getUserInfo", res => {
+					if (res.ok) {
+						res.json()
+							.then(json => {
+								let user = json;
+								hp += user.head.hp + user.body.hp + user.weapon.hp;
+								atk += user.head.attack + user.body.attack + user.weapon.attack;
+								matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
+								def += user.head.defend + user.body.defend + user.weapon.defend;
+								mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+								console.log(json);
+								$(".name").html(user.username);
+								let hptext = user.hp + "/" + hp;
+								$("#hp").html(hptext);
 
-            background-image: linear-gradient(#E8F5CA, #D4B82E);
-            height: 100%;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
+								console.log(def);
+								$("#atk").html(atk);
+								$("#matk").html(matk);
+								$("#def").html(def);
+								$("#mdef").html(mdef);
 
-        body {
-            margin: 0;
-        }
+								setImg(user);
 
-        .mobile-app-icon-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            display: -webkit-flex;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-align-items: center;
-            -ms-flex-align: center;
-            align-items: center;
-            -webkit-justify-content: space-around;
-            -ms-flex-pack: distribute;
-            justify-content: space-around;
-            background: rgb(255, 255, 255);
-            opacity: 0.7;
+							})
+							.catch(err => {
+								console.log(err);
+							});
+					}
+				});
+			}
+			catch (err) {
+				alert(err);
+			}
+		}
 
-            margin: 0;
-        }
+		function setImg(user) {
+			let head = user.head.name;
+			let body = user.body.name;
+			let weapon = user.weapon.name;
+			if (head != null) {
+				$(".img1").attr('src', '/images/items/' + head + '.png');
+			}
+			if (body != null) {
+				$(".img2").attr('src', '/images/items/' + body + '.png');
+			}			
+			if (weapon != null) {
+				$(".img3").attr('src', '/images/items/' + weapon + '.png');
+			}
+		}
+	</script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<style>
+		html {
+			background-image: linear-gradient(#E8F5CA, #D4B82E);
+			height: 100vh;
+			background-size: fill;
+			background-repeat: no-repeat;
+		}
 
-        .mobile-app-icon-bar button {
-            padding: 1.25rem;
-            cursor: pointer;
-        }
+		body {
+			margin: 0;
+			font-family: 'Kanit';
+			font-size: 22px;
+		}
 
-        .mobile-app-icon-bar button svg,
-        .mobile-app-icon-bar button i,
-        .mobile-app-icon-bar button img,
-        .mobile-app-icon-bar img {
-            font-size: 2rem;
-            max-height: 2.5rem;
-            max-width: 2.5rem;
-            padding: 1.25rem;
-        }
-    </style>
+		.name {
+			grid-area: id;
+		}
+
+		.hp {
+			grid-area: hp;
+		}
+
+		.pic {
+			grid-area: character;
+		}
+
+		.info {
+			grid-area: stat;
+		}
+
+		.grid-container {
+			display: grid;
+			grid-template-areas:
+				'id'
+				'hp'
+				'character'
+				'stat';
+			grid-gap: 3px;
+			padding: 0px;
+
+			grid-template-rows: 10vh 5vh 40vh 30vh;
+
+		}
+
+		.name {
+			font-size: 30px;
+			place-self: center;
+		}
+
+		#hp {
+			place-self: center;
+		}
+
+		.pic {
+			place-self: center;
+		}
+
+		.info {
+			padding-right: 30px;
+		}
+
+		#statTable {
+			font-size: 3.5vh;
+			width: 100%;
+			padding: 0px 3px 0px 8vh;
+		}
+
+		img {
+			width: 45vh;
+		}
+
+		.img1 {
+			position: absolute;
+			margin: 0 auto;
+			top: 15vh;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			z-index: 0;
+		}
+
+		.img2 {
+			position: absolute;
+			margin: 0 auto;
+			top: 15vh;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			z-index: 0;
+		}
+
+		.img3 {
+			position: absolute;
+			margin: 0 auto;
+			top: 15vh;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			z-index: -3;
+		}
+
+		.img0 {
+			position: absolute;
+			margin: 0 auto;
+			top: 15vh;
+			left: 0px;
+			right: 0px;
+			bottom: -2px;
+		}
+
+
+		.mobile-app-icon-bar {
+			position: fixed;
+			bottom: 0;
+			width: 100%;
+			display: -webkit-flex;
+			display: -ms-flexbox;
+			display: flex;
+			-webkit-align-items: center;
+			-ms-flex-align: center;
+			align-items: center;
+			-webkit-justify-content: space-around;
+			-ms-flex-pack: distribute;
+			justify-content: space-around;
+			background: rgb(255, 255, 255);
+			opacity: 0.7;
+			margin: 0;
+		}
+
+		.mobile-app-icon-bar button {
+			padding: 1.25rem;
+			cursor: pointer;
+		}
+
+		.mobile-app-icon-bar button svg,
+		.mobile-app-icon-bar button i,
+		.mobile-app-icon-bar button img,
+		.mobile-app-icon-bar img {
+			font-size: 2rem;
+			max-height: 2.5rem;
+			max-width: 2.5rem;
+			padding: 1rem 1rem 0.5rem 1rem;
+		}
+	</style>
 
 
 </head>
 
 <body>
+	<div class="mobile-app-icon-bar">
+		<a href="finding.html"><img src="/images/buttons/fight.png"></a>
+		<a href="#"><img src="/images/buttons/scan.png"></a>
+		<a href="inventory.html"><img src="/images/buttons/inventory.png"></a>
+		<a href="#"><img src="/images/buttons/quest.png"></a>
+	</div>
 
-    <div class="mobile-app-icon-bar">
-        <!-- <button><i class="fa fa-picture-o" aria-hidden="true"></i></button>
-        <button><i class="fa fa-map-marker" aria-hidden="true"></i></button>
-        <button><i class="fa fa-upload" aria-hidden="true"></i></button>
-        <button><i class="fa fa-list-ul" aria-hidden="true"></i></button> -->
-        <a href="#"><img src="/images/buttons/fight.png"></a>
-        <a href="#"><img src="/images/buttons/scan.png"></a>
-        <a href="#"><img src="/images/buttons/inventory.png"></a>
-        <a href="#"><img src="/images/buttons/quest.png"></a>
-    </div>
+	<div class="grid-container">
+		<div class="name">
+			<h1>ไม่โหลด</h1>
+		</div>
 
+		<div id="hp">
+			<h2>ไม่โหลด</h2>
+		</div>
 
-    <div>
-        <h1 class="name">.......d...</h1>
-    </div>
+		<div class="pic">
+			<img class="img0" src="/images/000.png">
+			<img class="img3" src="">
+			<img class="img1" src="">
+			<img class="img2" src="">
+		</div>
 
-    <div>
-        <h2 id="HP">10</h2>
-    </div>
-
-    <div class="pic">
-        <img class="pic" src="/images/00.png">
-    </div>
-
-    <div class="info">
-        <table style="width:100%">
-            <tr>
-                <td>Attack</td>
-                <td id="atk">3</td>
-            </tr>
-            <tr>
-                <td>M.Attack</td>
-                <td id="matk">2</td>
-            </tr>
-            <tr>
-                <td>Defend</td>
-                <td id="def">1</td>
-            </tr>
-            <tr>
-                <td>M.Defend</td>
-                <td id="mdef">1</td>
-            </tr>
-        </table>
-    </div>
+		<div class="info">
+			<table id="statTable">
+				<tr>
+					<td>Attack</td>
+					<td id="atk">3</td>
+				</tr>
+				<tr>
+					<td>M.Attack</td>
+					<td id="matk">2</td>
+				</tr>
+				<tr>
+					<td>Defend</td>
+					<td id="def">1</td>
+				</tr>
+				<tr>
+					<td>M.Defend</td>
+					<td id="mdef">1</td>
+				</tr>
+			</table>
+		</div>
+	</div>
 </body>
 
 </html>

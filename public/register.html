@@ -1,86 +1,66 @@
 <html>
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $("#register-form").submit(e => {
-                e.preventDefault();
-                register();
-            });
-        });
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="./javascripts/getPost.js"></script>
+	<script>
+		$(document).ready(function () {
+			$("#back").click(e => {
+				window.location = "/login.html";
+			})
 
-        function register() {
-            post($("#register-form"), "registerUser", res => {
-                if (res.ok) {
-                    window.location = "/login.html";
-                } else {
-                    alert("Wrong username or password");
-                }
-            });
-        }
+			$("#register-form").submit(e => {
+				e.preventDefault();
+				register();
+			});
+			
+		});
 
-        const root = "http://" + window.location.host + "/users/";
-        function getUri(name) { return root + name; }
+		function register() {
+			post($("#register-form").serializeArray(), "registerUser", res => {
+				if (res.ok) {
+					window.location = "/login.html";
+				} else {
+					alert("Wrong username or password");
+				}
+			});
+		}
+	</script>
 
-        function post(form, endPoint, func) {
-            try {
-                console.log(JSON.stringify(formToObject(form.serializeArray())));
-                fetch(getUri(endPoint), PostOptions(formToObject(form.serializeArray())))
-                    .then(response => {
-                        func(response);
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-            }
-            catch (err) {
-                alert(err);
-            }
-        }
-
-        function PostOptions(obj) {
-            return options = {
-                method: "POST",
-                body: JSON.stringify(obj),
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                credentials: "include"
-            };
-        }
-
-        function formToObject(obj) {
-            resultObj = new Object();
-            for (i = 0; i < obj.length; i++) {
-                resultObj[obj[i]["name"]] = obj[i]["value"];
-            }
-            return resultObj;
-        }
-    </script>
+	<style>
+		html {
+			background-image: linear-gradient(#E8F5CA, #D4B82E);
+			height: 100vh;
+			background-size: fill;
+			background-repeat: no-repeat;
+		}
+		button {
+		}
+	</style>
 </head>
 
 <body>
-    <h2>Login Form</h2>
+	<h2>Registration Form</h2>
 
-    <div id="register">
-        <form id="register-form" action="#" method="POST">
-            Username: <input type="text" name="username" /><br /><br />
-            Password: <input type="password" name="password" id="password" required><br /><br />
-            Confirm Password: <input type="password" id="confirm_password" required><br /><br />
-            Faculty: <select name="faculty">
-                <option value="EN">Engineer</option>
-                <option value="SC">Science</option>
-                <option value="HUSO">Humanity and Social Sciences</option>
-            </select><br /><br />
-            Gender:
-            <input type="radio" name="gender" value="m"> Male
-            <input type="radio" name="gender" value="f"> Female<br /><br />
-            <button type="submit" class="pure-button pure-button-primary">Confirm</button><br /><br />
-
-        </form>
-    </div>
+	<div id="register">
+		<form id="register-form" action="#" method="POST">
+			Username: <input type="text" name="username" /><br /><br />
+			Password: <input type="password" name="password" id="password" required><br /><br />
+			Confirm Password: <input type="password" id="confirm_password" required><br /><br />
+			Faculty: <select name="faculty">
+				<option value="EN">Engineer</option>
+				<option value="SC">Science</option>
+				<option value="HUSO">Humanity and Social Sciences</option>
+			</select><br /><br />
+			Gender:
+			<input type="radio" name="gender" value="m"> Male
+			<input type="radio" name="gender" value="f"> Female<br /><br />
+			<button type="submit" class="pure-button pure-button-primary">Confirm</button>
+			<button id="back">Back</button>
+		</form>
+		
+	</div>
 </body>
 
 </html>

@@ -37,6 +37,14 @@ module.exports = (sequelize, DataTypes) => {
         name: {
             type: DataTypes.STRING(100),
             allowNull: false
+		},
+		pic: {
+            type: DataTypes.STRING(100),
+            allowNull: true
+		},
+		tier: {
+            type: DataTypes.INTEGER(11),
+            allowNull: false
         }
     },{
 		tableName: "items",

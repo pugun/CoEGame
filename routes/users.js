@@ -15,8 +15,17 @@ function isLoggedIn(req, res, next) {
 	if (req.isAuthenticated()) {
 		return next();
 	}
-	res.status(401).send("Not login");
+	res.sendStatus(401);
 }
+
+router.get("/isLogin", (req, res) => {
+	if (req.isAuthenticated()) {
+		res.sendStatus(200);
+	}
+	else {
+		res.sendStatus(401);
+	}
+})
 
 router.post("/login", passport.authenticate("local"), (req, res) => {
 	res.send("Login successfully");
@@ -67,12 +76,14 @@ router.post("/updateUserInfo", isLoggedIn, (req, res) => {
 	});
 });
 
-router.get("/items", isLoggedIn, (req, res) => {
-	db.User.findOne({
-		where: { id: req.user.id },
+router.get("/getInventory", isLoggedIn, (req, res) => {
+	db.Inventory.findAll({
+		where: { UserId: req.user.id },
 		raw: true,
+		attributes: { exclude: ["id", "createdAt", "updatedAt", "UserId", "ItemId"]},
 		include: [{
 			model: db.Item,
+			attributes: { exclude: ["createdAt", "updatedAt","id","UserId"]}
 		}]
 	}).then(user => {
 		res.status(200).json(user);
@@ -90,6 +101,31 @@ router.post("/qrSent", isLoggedIn, (req, res) => {
 			UserId: req.user.id,
 			ItemId: qr.ItemId
 		})
+	}).then(result => {
+		res.sendStatus(200);
+	}).catch(err => {
+		res.sendStatus(500);
+		console.log(err);
+	});
+});
+
+router.post("/equipItem", isLoggedIn, (req, res) => {
+	let field;
+	if(req.body.slot == 1) {
+		field = "head";
+	} else if(req.body.slot == 2) {
+		field = "body";
+	} else if(req.body.slot == 3){
+		field = "weapon";
+	}
+	db.Character.findOne({
+		where: { UserId: req.user.id },
+	}).then(result => {
+		return result.update({
+			head: req.body.itemId,
+			body: req.body.itemId,
+			weapon: req.body.itemId
+		}, {fields: [field]})
 	}).then(result => {
 		res.sendStatus(200);
 	}).catch(err => {
@@ -118,9 +154,9 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 			data.head = {};
 			if (head === null) {
 				data.head.attack = 0,
-				data.head.mttack = 0,
-				data.head.def = 0,
-				data.head.mdef = 0,
+				data.head.mattack = 0,
+				data.head.defend = 0,
+				data.head.mdefend = 0,
 				data.head.hp = 0
 			} else {
 				data.head = head;
@@ -133,9 +169,9 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 			data.body = {};
 			if (body === null) {
 				data.body.attack = 0,
-				data.body.mttack = 0,
-				data.body.def = 0,
-				data.body.mdef = 0,
+				data.body.mattack = 0,
+				data.body.defend = 0,
+				data.body.mdefend = 0,
 				data.body.hp = 0
 			} else {
 				data.body = body;
@@ -148,9 +184,9 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 			data.weapon = {};
 			if (weapon === null) {
 				data.weapon.attack = 0,
-				data.weapon.mttack = 0,
-				data.weapon.def = 0,
-				data.weapon.mdef = 0,
+				data.weapon.mattack = 0,
+				data.weapon.defend = 0,
+				data.weapon.mdefend = 0,
 				data.weapon.hp = 0
 			} else {
 				data.weapon = weapon;
