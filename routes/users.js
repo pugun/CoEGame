@@ -80,7 +80,7 @@ router.get("/getInventory", isLoggedIn, (req, res) => {
 	db.Inventory.findAll({
 		where: { UserId: req.user.id },
 		raw: true,
-		attributes: { exclude: ["id", "createdAt", "updatedAt", "UserId", "ItemId"]},
+		attributes: { exclude: ["id", "createdAt", "updatedAt", "UserId"]},
 		include: [{
 			model: db.Item,
 			attributes: { exclude: ["createdAt", "updatedAt","id","UserId"]}
@@ -137,11 +137,17 @@ router.post("/equipItem", isLoggedIn, (req, res) => {
 //user belongs to passport
 router.get("/getUserInfo", isLoggedIn, (req, res) => {
 	let id = req.user.id;
+	if(req.query.id != null) {
+		id = req.query.id;
+	}
+	console.log(id);
+	
 	let data = {};
 	db.User.findOne({
 		where: { id: id }
 	}).then(user => {
-		data.username = user.username;
+		data.username = user.username,
+		data.id = user.id;
 		return db.Character.findOne({
 			where: { UserId: id }
 		});
@@ -200,8 +206,15 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 	});
 });
 
-router.post("/findPlayer", isLoggedIn, (req, res) => {
-	res.status(200).json({playerId: 15});
+router.get("/findPlayer", isLoggedIn, (req, res) => {
+	let players = [14, 19];
+	db.User.findAll({
+		where : { ID : { [sequelize.Op.in]: players }},
+		raw : true
+	
+	}).then( result => {
+		res.status(200).json(result);
+	})
 });
 
 router.get("/getOpponent", isLoggedIn, (req,res) => {

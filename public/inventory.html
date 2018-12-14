@@ -9,9 +9,10 @@
 		$(document).ready(function () {
 			genTable();
 			getInventory();
+			getUserInfo()
 		});
 
-		
+
 
 		function genTable() {
 			let NUM_COLS = 6
@@ -36,7 +37,7 @@
 			let tr = document.createElement("tr");
 			for (let j = 0; j < 3; j++) {
 				let td = document.createElement("td");
-				td.id = j+1;
+				td.id = j + 1;
 				td.className = "slot-tabledata";
 				// td.innerHTML = td.id;
 				let img = document.createElement("img");
@@ -55,14 +56,19 @@
 							.then(json => {
 								let inventory = json;
 								console.log(inventory);
-								for(let i = 0 ; i<inventory.length;i++) {
+								for (let i = 0; i < inventory.length; i++) {
 									console.log('/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
 									$("#img" + i).attr('src', '/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
-									$("#img" + i).click(function() {
-										// if(inventory[i]["Item.slot"] == 1) {
-											console.log("sdfsdf");
-											$("#imgs" + inventory[i]["Item.slot"]).attr('src', '/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
-										// }
+									$("#img" + i).click(function () {
+										let slot = inventory[i]["Item.slot"];
+										let itemId = inventory[i].ItemId;
+										console.log(inventory[i].ItemId);
+										$("#imgs" + slot).attr('src', '/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
+										var Obj = [{ name: "slot", value: slot }, { name: "itemId", value: itemId }];
+										post(Obj, "equipItem", res => {
+											console.log("post");
+											window.location = "/inventory.html";
+										});
 									});
 								}
 							})
@@ -76,6 +82,48 @@
 				alert(err);
 			}
 		}
+
+		function getUserInfo() {
+			try {
+				get("getUserInfo", res => {
+					if (res.ok) {
+						res.json()
+							.then(json => {
+								let user = json;
+								setImg(user);
+
+							})
+							.catch(err => {
+								console.log(err);
+							});
+					}
+				});
+			}
+			catch (err) {
+				alert(err);
+			}
+		}
+
+		function setImg(user) {
+			let head = user.head.name;
+			let body = user.body.name;
+			let weapon = user.weapon.name;
+			if (head != null) {
+				$("#imgs1").attr('src', '/images/items/thumbnail/' + head + '.png');
+				$(".img1").attr('src', '/images/items/' + head + '.png');
+			}
+			if (body != null) {
+				$("#imgs2").attr('src', '/images/items/thumbnail/' + body + '.png');
+				$(".img2").attr('src', '/images/items/' + body + '.png');
+
+			}
+			if (weapon != null) {
+				$("#imgs3").attr('src', '/images/items/thumbnail/' + weapon + '.png');
+				$(".img3").attr('src', '/images/items/' + weapon + '.png');
+
+			}
+		}
+
 	</script>
 	<style>
 		html {
@@ -83,6 +131,7 @@
 			height: 100vh;
 			background-size: fill;
 			background-repeat: no-repeat;
+			font-family: 'Kanit';
 		}
 
 		.grid-container {
@@ -124,13 +173,67 @@
 		img {
 			width: 70px;
 		}
+
+		.img1 {
+			position: absolute;
+			margin: 0 auto;
+			top: 10vh;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			z-index: 0;
+			width: 40vh;
+		}
+
+		.img2 {
+			position: absolute;
+			margin: 0 auto;
+			top: 10vh;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			z-index: 0;
+			width: 40vh;
+		}
+
+		.img3 {
+			position: absolute;
+			margin: 0 auto;
+			top: 10vh;
+			left: 0px;
+			right: 0px;
+			bottom: 0px;
+			z-index: -3;
+			width: 40vh;
+		}
+
+		.img0 {
+			position: absolute;
+			margin: 0 auto;
+			top: 10vh;
+			left: 0px;
+			right: 0px;
+			bottom: -2px;
+			width: 40vh;
+		}
+
+		#header {
+			font-size: 75px;
+		}
 	</style>
 </head>
 
 <body>
 	<div class="grid-container">
-		<div class="grid-item">EQUIPMENT</div>
-		<div class="grid-item">CHARACTER</div>
+		<div class="grid-item" id="header">EQUIPMENT</div>
+		<div class="grid-item">
+			<div class="pic">
+				<img class="img0" src="/images/000.png">
+				<img class="img3" src="">
+				<img class="img1" src="">
+				<img class="img2" src="">
+			</div>
+		</div>
 		<div class="grid-item">
 			<table id="slot-table"></table>
 		</div>
