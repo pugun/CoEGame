@@ -28,6 +28,7 @@
 					let img = document.createElement("img");
 					img.id = "img" + (i * NUM_COLS + j);
 					td.appendChild(img);
+					
 					tr.appendChild(td);
 				}
 				table.appendChild(tr);
@@ -58,6 +59,11 @@
 								console.log(inventory);
 								for (let i = 0; i < inventory.length; i++) {
 									console.log('/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
+									$("#img" + i).hover(function () {
+										$(this).css("background-color", "yellow");
+									}, function () {
+										$(this).css("background-color", "transparent");
+									})
 									$("#img" + i).attr('src', '/images/items/thumbnail/' + inventory[i]["Item.name"] + '.png');
 									$("#img" + i).click(function () {
 										let slot = inventory[i]["Item.slot"];
@@ -172,6 +178,7 @@
 
 		img {
 			width: 70px;
+
 		}
 
 		.img1 {
@@ -220,6 +227,10 @@
 		#header {
 			font-size: 7vh;
 		}
+
+		/* img:hover {
+			background-color: yellow;
+		} */
 	</style>
 </head>
 
