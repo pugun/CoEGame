@@ -1,19 +1,20 @@
 <html>
 
 <head>
-	<title>Instascan</title>
+	<!-- <title>Instascan</title> -->
 	<script type="text/javascript" src="./javascripts/instascan.min.js"></script>
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="./javascripts/getPost.js"></script>
-	<!-- <style>
-		#preview {
+	<style>
+		/* #preview {
 			width: 100%;
 			
-		}
-	</style> -->
+		} */
+	</style>
 </head>
 
 <body>
+	<p>Tes</p>
 	<p id="p"></p>
 	<video id="preview"></video>
 	<script type="text/javascript">
@@ -24,6 +25,7 @@
 				let Obj = [{ name: "qrcode", value: content }];
 				post(Obj, "qrSent", res => {
 					console.log("post");
+					alert("You got an item!\nCheck out you inventory");
 				});
 				window.location = "/profile.html";
 			});
@@ -31,10 +33,16 @@
 			Instascan.Camera.getCameras().then(function (cameras) {
 				if (cameras.length > 0) {
 					self.activeCameraId = cameras[0].id;
-					scanner.start(cameras[0]);
+					if(cameras.length > 1) {
+						scanner.start(cameras[1]);
+					} else {
+						scanner.start(cameras[0]);
+					}
 					$("#p").html(cameras.length);
+
 				} else {
 					console.error('No cameras found.');
+					$("#p").html('0');
 				}
 
 			}).catch(function (e) {

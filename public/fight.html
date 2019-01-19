@@ -3,13 +3,15 @@
 <head>
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<link href="https://fonts.googleapis.com/css?family=Kanit" rel="stylesheet">
+
 	<script src="./javascripts/getPost.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
 		"use strict";
 		let socket = io();
-
+		clearInterval(sendGeoId);
 		let id;
+		let p1Maxhp, p2Maxhp;
 
 		let player1 = $_GET('player1'),
 			player2 = $_GET('player2');
@@ -103,6 +105,7 @@
 				}
 				if (state.atkTurn != turn) {
 					console.log("DEF");
+					$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #CAF5CB);');
 					$('#head').html("Defend");
 					$('#btn3').attr('style', 'display: inherit;');
 					$('#btn4').attr('style', 'display: inherit;');
@@ -110,6 +113,7 @@
 					$('#btn2').attr('style', 'display: none;');
 				} else {
 					console.log("ATK");
+					$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #EC2C2A);');
 					$('#head').html("Attack");
 					$('#btn1').attr('style', 'display: inherit;');
 					$('#btn2').attr('style', 'display: inherit;');
@@ -121,12 +125,13 @@
 			socket.on("end", serverState => {
 				console.log(serverState);
 
-				alert("You Win");
-				window.location = "/profile.html";
-				// let rstBtn = document.createElement('button');
-				// rstBtn.className = 'btn';
-				// rstBtn.innerHTML = 'Restart';
-				// $("body").append(rstBtn);
+				if (serverState.winner == id) {
+					alert("You Win");
+					window.location = "/profile.html";
+				} else {
+					alert("You Lose");
+					window.location = "/profile.html";
+				}
 			});
 		});
 
@@ -179,15 +184,6 @@
 									state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
 									state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
 									console.log(json);
-									// $(".name").html(user.username);
-									// let hptext = user.hp + "/" + hp;
-									// $("#hp").html(hptext);
-
-									// console.log(def);
-									// $("#atk").html(atk);
-									// $("#matk").html(matk);
-									// $("#def").html(def);
-									// $("#mdef").html(mdef);
 
 									setImg(user, 1);
 									setText(user, 1);
@@ -209,16 +205,9 @@
 									state.player[0].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
 									state.player[0].def += user.head.defend + user.body.defend + user.weapon.defend;
 									state.player[0].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+									p1Maxhp = state.player[0].hp;
+									console.log("p1Maxhp = " + p1Maxhp);
 									console.log(json);
-									// $(".name").html(user.username);
-									// let hptext = user.hp + "/" + hp;
-									// $("#hp").html(hptext);
-
-									// console.log(def);
-									// $("#atk").html(atk);
-									// $("#matk").html(matk);
-									// $("#def").html(def);
-									// $("#mdef").html(mdef);
 
 									setImg(user, 1);
 									setText(user, 1);
@@ -233,17 +222,9 @@
 													state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
 													state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
 													state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
-													// console.log(state);
-													// $(".name").html(user.username);
-													// let hptext = user.hp + "/" + hp;
-													// $("#hp").html(hptext);
 
-													// console.log(def);
-													// $("#atk").html(atk);
-													// $("#matk").html(matk);
-													// $("#def").html(def);
-													// $("#mdef").html(mdef);
-
+													p2Maxhp = state.player[1].hp;
+													console.log("p2Maxhp = " + p2Maxhp);
 													setImg(user, 2);
 													setText(user, 2);
 
@@ -293,13 +274,32 @@
 		}
 
 		function setTextHp(state, p) {
+			let p1hp,p2hp;
+			
+
 			if (p == 1) {
+				p1hp = (state.player[0].hp / p1Maxhp) * 100;
+				p2hp = (state.player[1].hp / p2Maxhp) * 100;
 				$("#hp1").html(state.player[0].hp);
 				$("#hp2").html(state.player[1].hp);
+
+				console.log("hpm1: " + p1hp);
+				console.log("hpm2: " + p2hp);
+				console.log(state);
+				$("#hpm1").attr('style', 'width: ' + p1hp + '%');
+				$("#hpm2").attr('style', 'width: ' + p2hp + '%');
 			}
 			if (p == 2) {
+				p1hp = (state.player[1].hp / p1Maxhp) * 100;
+				p2hp = (state.player[0].hp / p2Maxhp) * 100;
 				$("#hp1").html(state.player[1].hp);
 				$("#hp2").html(state.player[0].hp);
+				
+				console.log("hpm1: " + p1hp);
+				console.log("hpm2: " + p2hp);
+				console.log("State" + state);
+				$("#hpm1").attr('style', 'width: ' + p1hp + '%');
+				$("#hpm2").attr('style', 'width: ' + p2hp + '%');
 			}
 		}
 		socket.emit("chat message", "AHHHHH");
@@ -307,7 +307,8 @@
 	<style>
 		html {
 			background-image: linear-gradient(#E8F5CA, #D4B82E);
-			height: 100vh;
+			height: 117vh;
+			width: 73vh;
 			background-size: fill;
 			background-repeat: no-repeat;
 			text-align: center;
@@ -318,7 +319,7 @@
 
 		#name2,
 		#name1 {
-			font-size: 60px;
+			font-size: 7vh;
 			/* color: rgb(106, 182, 156); */
 		}
 
@@ -328,8 +329,8 @@
 			border: 2px solid rgb(81, 82, 81);
 			background: rgba(255, 255, 255, 0.2);
 			/* margin: 20px 0 0 0; */
-			height: 70px;
-			width: 220px;
+			height: 10vh;
+			width: 30vh;
 			font-size: 35px;
 			color: rgb(78, 78, 78);
 			font-style: italic;
@@ -337,44 +338,57 @@
 
 		img {
 			position: absolute;
-			width: 40%;
+			width: 45vh;
 		}
 
 		.img10 {
+			top: 30vh;
 			-webkit-transform: scaleX(-1);
 			transform: scaleX(-1);
 		}
 
 		.img11 {
+			top: 30vh;
 			-webkit-transform: scaleX(-1);
 			transform: scaleX(-1);
 			z-index: 0;
 		}
 
 		.img12 {
+			top: 30vh;
 			-webkit-transform: scaleX(-1);
 			transform: scaleX(-1);
 			z-index: 0;
 		}
 
 		.img13 {
+			top: 30vh;
 			-webkit-transform: scaleX(-1);
 			transform: scaleX(-1);
 			z-index: -3;
 		}
 
-		.img20 {}
+		.img20 {
+			top: 30vh;
+			left: 55%;
+		}
 
 		.img21 {
+			top: 30vh;
 			z-index: 0;
+			left: 55%;
 		}
 
 		.img22 {
+			top: 30vh;
 			z-index: 0;
+			left: 55%;
 		}
 
 		.img23 {
+			top: 30vh;
 			z-index: -3;
+			left: 55%;
 		}
 
 		#name2,
@@ -386,61 +400,267 @@
 			text-align: center;
 		}
 
-		#hp1, #hp2 {
+		#hp1,
+		#hp2 {
 			font-size: 50px;
+		}
+
+		#head {
+			font-size: 7vh;
+			margin: 0;
+		}
+
+		.item1 {
+			grid-area: header;
+		}
+
+		.item2 {
+			grid-area: left;
+			text-align: left;
+			margin: 0;
+		}
+
+		.item3 {
+			grid-area: right;
+			text-align: right;
+			margin: 0;
+		}
+
+		.item4 {
+			/* top: 100vh; */
+			
+			grid-area: leftb;
+		}
+
+		.item5 {
+			/* top: 100vh; */
+			padding: 30vh 0 0 0;
+			text-align: left;
+			grid-area: rightb;
+		}
+
+		.grid-container {
+			display: grid;
+			grid-template-areas:
+				'header header header header header header'
+				'left left left right right right'
+				'leftb leftb leftb rightb rightb rightb';
+			margin: 0;
+		}
+
+		.grid-container>div {
+			margin: 0;
+		}
+
+		h1 {
+			margin: 0;
+		}
+
+
+		.meter {
+			width: 20vh;
+			height: 20px;
+			/* Can be anything */
+			position: relative;
+			margin: 0px 0 0px 0;
+			/* Just for demo spacing */
+			background: #555;
+			-moz-border-radius: 25px;
+			-webkit-border-radius: 25px;
+			border-radius: 25px;
+			padding: 10px;
+			-webkit-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+			-moz-box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+			box-shadow: inset 0 -1px 1px rgba(255, 255, 255, 0.3);
+		}
+
+		.meter>span {
+			display: block;
+			height: 100%;
+			-webkit-border-top-right-radius: 8px;
+			-webkit-border-bottom-right-radius: 8px;
+			-moz-border-radius-topright: 8px;
+			-moz-border-radius-bottomright: 8px;
+			border-top-right-radius: 8px;
+			border-bottom-right-radius: 8px;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			background-color: rgb(43, 194, 83);
+			background-image: -webkit-gradient(linear,
+				left bottom,
+				left top,
+				color-stop(0, rgb(43, 194, 83)),
+				color-stop(1, rgb(84, 240, 84)));
+			background-image: -moz-linear-gradient(center bottom,
+				rgb(43, 194, 83) 37%,
+				rgb(84, 240, 84) 69%);
+			-webkit-box-shadow:
+				inset 0 2px 9px rgba(255, 255, 255, 0.3),
+				inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+			-moz-box-shadow:
+				inset 0 2px 9px rgba(255, 255, 255, 0.3),
+				inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+			box-shadow:
+				inset 0 2px 9px rgba(255, 255, 255, 0.3),
+				inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+			position: relative;
+			overflow: hidden;
+		}
+
+		.meter>span:after,
+		.animate>span>span {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 0;
+			bottom: 0;
+			right: 0;
+			background-image:
+				-webkit-gradient(linear, 0 0, 100% 100%,
+				color-stop(.25, rgba(255, 255, 255, .2)),
+				color-stop(.25, transparent), color-stop(.5, transparent),
+				color-stop(.5, rgba(255, 255, 255, .2)),
+				color-stop(.75, rgba(255, 255, 255, .2)),
+				color-stop(.75, transparent), to(transparent));
+			background-image:
+				-moz-linear-gradient(-45deg,
+				rgba(255, 255, 255, .2) 25%,
+				transparent 25%,
+				transparent 50%,
+				rgba(255, 255, 255, .2) 50%,
+				rgba(255, 255, 255, .2) 75%,
+				transparent 75%,
+				transparent);
+			z-index: 1;
+			-webkit-background-size: 50px 50px;
+			-moz-background-size: 50px 50px;
+			background-size: 50px 50px;
+			-webkit-animation: move 2s linear infinite;
+			-moz-animation: move 2s linear infinite;
+			-webkit-border-top-right-radius: 8px;
+			-webkit-border-bottom-right-radius: 8px;
+			-moz-border-radius-topright: 8px;
+			-moz-border-radius-bottomright: 8px;
+			border-top-right-radius: 8px;
+			border-bottom-right-radius: 8px;
+			-webkit-border-top-left-radius: 20px;
+			-webkit-border-bottom-left-radius: 20px;
+			-moz-border-radius-topleft: 20px;
+			-moz-border-radius-bottomleft: 20px;
+			border-top-left-radius: 20px;
+			border-bottom-left-radius: 20px;
+			overflow: hidden;
+		}
+
+		.animate>span:after {
+			display: none;
+		}
+
+		@-webkit-keyframes move {
+			0% {
+				background-position: 0 0;
+			}
+
+			100% {
+				background-position: 50px 50px;
+			}
+		}
+
+		@-moz-keyframes move {
+			0% {
+				background-position: 0 0;
+			}
+
+			100% {
+				background-position: 50px 50px;
+			}
+		}
+
+		.nostripes>span>span,
+		.nostripes>span:after {
+			-webkit-animation: none;
+			-moz-animation: none;
+			background-image: none;
+		}
+
+		#meter2 {
+			float: right;
+		}
+
+		.Choice {
+			margin: 30vh 0 0 0;
 		}
 	</style>
 </head>
 
 <body>
-	<h1 id="head">Attack</h1>
+	<div class="grid-container">
+		<div class="item1">
+			<h1 id="head">Attack</h1>
+		</div>
+		<div class="item2">
+			<h1 id="name1">P1</h1>
+			<h1 id="hp1">00</h1>
+			<div class="meter">
+				<span id="hpm1" style="width: 100%"></span>
+			</div>
+
+			<img class="img10" src="./images/000.png">
+			<img class="img13">
+			<img class="img11">
+			<img class="img12">
+			<br><br><br><br><br>
+		</div>
+		<div class="item3">
+			<h1 id="name2">P2</h1>
+			<h1 id="hp2">00</h1>
+			<div class="meter" id="meter2">
+				<span id="hpm2" style="width: 100%"></span>
+			</div>
+			<img class="img20" src="./images/000.png">
+			<img class="img23">
+			<img class="img21">
+			<img class="img22">
+		</div>
+		<div class="item4">
+			<!-- <br><br><br><br><br><br> -->
+			<div class="Choice">
+				<table>
+
+					<div id="atkBtn">
+						<tr>
+							<td id="btnholder"><button class="btn" id="btn1">Attack</button></td>
+						</tr>
+						<tr>
+							<td><button class="btn" id="btn2">M.Attack</button></td>
+						</tr>
+					</div>
+					<div id="defBtn">
+						<tr>
+							<td id="btnholder"><button class="btn" id="btn3">Defend</button></td>
+						</tr>
+						<tr>
+							<td><button class="btn" id="btn4">M.Defend</button></td>
+						</tr>
+					</div>
+				</table>
+			</div>
+		</div>
+		<div class="item5">
+			<!-- <p>Opponet use Attack on you</p>
+			<p>Damage 5</p> -->
+		</div>
+	</div>
+
 	<div class="character">
-		<table style="width:100%">
-			<tr>
-				<td id="name1">Toptoppy</td>
-				<td id="name2">test4</td>
-			</tr>
-			<tr>
-				<td id="hp1">HP</td>
-				<td id="hp2">HP</td>
-			</tr>
-			<tr>
-				<td>
-					<img class="img10" src="./images/000.png">
-					<img class="img13">
-					<img class="img11">
-					<img class="img12">
-				</td>
-				<td>
-					<img class="img20" src="./images/000.png">
-					<img class="img23">
-					<img class="img21">
-					<img class="img22">
-				</td>
-			</tr>
-		</table>
+
+
 	</div>
-	<br><br><br><br><br><br><br><br><br><br>
-	<div class="Choice">
-		<table>
-			<div id="atkBtn">
-				<tr>
-					<td id="btnholder"><button class="btn" id="btn1">Attack</button></td>
-				</tr>
-				<tr>
-					<td><button class="btn" id="btn2">M.Attack</button></td>
-				</tr>
-			</div>
-			<div id="defBtn">
-				<tr>
-					<td id="btnholder"><button class="btn" id="btn3">Defend</button></td>
-				</tr>
-				<tr>
-					<td><button class="btn" id="btn4">M.Defend</button></td>
-				</tr>
-			</div>
-		</table>
-	</div>
+
 </body>
 
 </html>

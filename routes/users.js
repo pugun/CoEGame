@@ -3,7 +3,21 @@ var router = express.Router();
 var db = require('./../models');
 var sequelize = require('sequelize');
 var passport = require('passport');
+var loki = require('lokijs');
+var imdb = new loki('loki.json');
+var children = imdb.addCollection('children');
+var geoLocation = imdb.addCollection("geoLocation");
 
+router.get("/lokijuti", function (req, res) {
+	children.insert({name:'Sleipnir', legs: 8});
+	children.insert({name:'Jormungandr', legs: 0});
+	children.insert({name:'Hel', legs: 2});
+	res.sendStatus(200);
+})
+
+router.get("/lokishow", function (req, res) {
+	res.status(200).send(children.find());
+})
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -201,25 +215,78 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 	}).then(result => {
 		res.status(200).json(data);
 	}).catch(err => {
-		console.log(err);
+		
 		res.sendStatus(500);
 	});
 });
 
 router.get("/findPlayer", isLoggedIn, (req, res) => {
-	let players = [14, 19];
-	db.User.findAll({
-		where : { ID : { [sequelize.Op.in]: players }},
-		raw : true
-	
-	}).then( result => {
-		res.status(200).json(result);
+	let promises = [];
+	let players = [];
+	let playersLocation = geoLocation.find();
+	let myid = geoLocation.findOne({ id: req.user.id });
+	function checkdistance(player) {
+		if (player.id === req.user.id)
+		{
+			return;
+		}
+		let x1 = player.lat;
+		let x2 = myid.lat;
+		let y1 = player.long;
+		let y2 = myid.long;
+		console.log(`x1 = ${x1} x2 = ${x2} y1 = ${y1} y2 = ${y2}`);
+		let result = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+		
+		function pushPlayer(result)
+		{
+			return db.User.findOne({where: {id: player.id} , raw: true}).then(user => {
+				if ( result <= 0.0006) {
+					players.push({
+						playerId: player.id,
+						playerName: user.username
+					});
+				}
+			});
+		}
+
+		promises.push(pushPlayer(result));
+	}
+
+	for (i = 0; i < playersLocation.length; i++)
+	{
+		checkdistance(playersLocation[i]);
+	}
+
+	Promise.all(promises).then(() => {
+		console.log(players);
+		res.status(200).json(players);
+	}).catch(err => {
+		console.log(err);
+		res.sendStatus(500);
 	})
+	
 });
 
-router.get("/getOpponent", isLoggedIn, (req,res) => {
-	res.status(200).json({playerId: 14});
+router.post("/postGeo", isLoggedIn, (req, res) => {
+	var user = geoLocation.findOne({id: req.user.id})
+	if(user === null) {
+		geoLocation.insert({
+			id: req.user.id ,
+			lat: req.body.lat,
+			long: req.body.long
+		});
+	}
+	else {
+		user.lat = req.body.lat;
+		user.long = req.body.long;
+		geoLocation.update(user);
+	}
+	
+	res.status(200);
 });
 
+router.get("/getGeo", isLoggedIn, (reg, res) => {
+	res.status(200).json(geoLocation);
+});
 
 module.exports = router;

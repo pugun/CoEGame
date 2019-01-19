@@ -1,14 +1,25 @@
-const root = "http://" + window.location.host + "/users/";
+const root = "https://" + window.location.host + "/users/";
 function getUri(name) { return root + name; }
+let userInfo;
+let sendGeoId;
+
+let sendGeo = new Promise(function (resolve, reject) {
+	getGeo();
+	// sendGeoId = setInterval(getGeo, 7500);
+
+})
+
+getInfo();
 
 get("isLogin", res => {
-	if(!res.ok) {
-		if( window.location.pathname !== "/login.html" && window.location.pathname !== "/register.html" ) {
+	if (!res.ok) {
+		if (window.location.pathname !== "/login.html" && window.location.pathname !== "/register.html") {
 			window.location = "/login.html";
 		}
 	}
 	else {
-		if( window.location.pathname === "/login.html" || window.location.pathname === "/register.html" ) {
+		sendGeo();
+		if (window.location.pathname === "/login.html" || window.location.pathname === "/register.html") {
 			window.location = "/profile.html";
 		}
 	}
@@ -49,7 +60,7 @@ function PostOptions(obj) {
 	return options = {
 		method: "POST",
 		body: JSON.stringify(obj),
-		headers: {
+		headers: { 
 			"Content-Type": "application/json"
 		},
 		credentials: "include"
@@ -62,4 +73,54 @@ function formToObject(obj) {
 		resultObj[obj[i]["name"]] = obj[i]["value"];
 	}
 	return resultObj;
+}
+
+function getGeo() {
+	if (!navigator.geolocation) {
+		console.log("Geolocation is not supported by your browser");
+		return;
+	}
+
+	function success(position) {
+		var latitude = position.coords.latitude;
+		var longitude = position.coords.longitude;
+		var geo = [{ name: 'lat', value: latitude }, { name: 'long', value: longitude }];
+
+		console.log(geo);
+		//postGeo
+		post(geo, "postGeo", null);
+	}
+
+	function error() {
+		console.log("Unable to retrieve your location");
+	}
+
+	navigator.geolocation.getCurrentPosition(success, error);
+}
+
+//confirm box
+function challenge(id) {
+	var r = confirm("Press a button!");
+	if (r == true) {
+		// txt = "You pressed OK!";
+	} else {
+		// txt = "You pressed Cancel!";
+	}
+}
+
+//getInfo
+function getInfo() {
+	try{
+		get("getUserInfo", res => {
+			res.json().then(json => {
+				console.log(json);
+				userInfo = json;
+			})
+			
+			
+		})
+	}
+	catch(err) {
+		alert(err);
+	}
 }
