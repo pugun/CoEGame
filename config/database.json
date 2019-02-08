@@ -3,9 +3,16 @@
 		"username": "root",
 		"password": "root",
 		"database": "coedb",
-		"host": "localhost",
+		"host": "jipatha-wiki.ddns.net",
 		"dialect": "mysql",
 		"logging": false
+	},
+	"heroku": {
+		"username": "root",
+		"password": "root",
+		"database": "coe_production",
+		"host": "localhost",
+		"dialect": "pg"
 	},
 	"test": {
 		"username": "root",

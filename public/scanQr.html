@@ -6,20 +6,24 @@
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="./javascripts/getPost.js"></script>
 	<style>
-		/* #preview {
+		video {
 			width: 100%;
-			
-		} */
+			/* -o-transform : scaleX(1);
+  -moz-transform : scaleX(1);
+  -webkit-transform : scaleX(1);
+  -ms-transform: scaleX(1);
+  transform : scaleX(1); */
+		}
 	</style>
 </head>
 
 <body>
-	<p>Tes</p>
-	<p id="p"></p>
+	<!-- <p>Tes</p>
+	<p id="p"></p> -->
 	<video id="preview"></video>
 	<script type="text/javascript">
 		$(document).ready(function () {
-			let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
+			let scanner = new Instascan.Scanner({ video: document.getElementById('preview'), mirror: false });
 			scanner.addListener('scan', function (content) {
 				console.log(content);
 				let Obj = [{ name: "qrcode", value: content }];
@@ -33,7 +37,7 @@
 			Instascan.Camera.getCameras().then(function (cameras) {
 				if (cameras.length > 0) {
 					self.activeCameraId = cameras[0].id;
-					if(cameras.length > 1) {
+					if (cameras.length > 1) {
 						scanner.start(cameras[1]);
 					} else {
 						scanner.start(cameras[0]);

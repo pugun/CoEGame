@@ -27,7 +27,7 @@
 									tdname.className = "left";
 
 									let button = document.createElement("button");
-									button.innerHTML = "FIGHT!";
+									// button.innerHTML = "FIGHT!";
 									button.id = Opponent[i].playerId;
 									button.className = "btn";
 
@@ -99,22 +99,19 @@
 		.left {}
 
 		.btn {
-			border-radius: 50px;
-			padding: 10px 20px 10px 20px;
-			border: 2px solid rgb(81, 82, 81);
-			background: rgba(255, 255, 255, 0.2);
-			/* margin: 20px 0 0 0; */
-			height: 70px;
-			width: 220px;
-			font-size: 35px;
-			color: rgb(78, 78, 78);
-			font-style: italic;
+			background-image: url("/images/buttons/maing5.png");
+			background-size: 100%;
+			background-color: Transparent;
+			border: none;
+			width: 20vh;
+			height: 10vh;
 		}
 
 		input[type=button]:hover,
-		input[type=submit]:hover {
+		input[type=submit]:hover,
+		.btn:hover {
 			/* opacity: 1; */
-			background: rgba(255, 255, 255, 0.8);
+			/* background: rgba(255, 255, 255, 0.8); */
 		}
 
 		h1 {
@@ -126,7 +123,7 @@
 <body>
 	<h1>Near Opponents</h1>
 	<table></table>
-	<button id="wait">waiting room</button>
+	<!-- <button id="wait">waiting room</button> -->
 </body>
 
 </html>

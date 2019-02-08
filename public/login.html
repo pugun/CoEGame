@@ -28,11 +28,16 @@
 	<!-- wait for above -->
 	<style>
 		html {
-			background-image: linear-gradient(#E8F5CA, #D4B82E);
 			height: 100vh;
-			background-size: fill;
+			
 			background-repeat: no-repeat;
 			font-family: 'Kanit';
+		}
+		body {
+			background-image: url("/images/background/login.jpg");
+			background-size: cover;
+			
+			background-repeat: no-repeat;
 		}
 
 		.grid-container {
@@ -45,9 +50,6 @@
 			grid-template-columns: 30% 70%;
 			grid-gap: 5px;
 		}
-		/* .grid_input > .item1, .grid_input > .item3 {
-			justify-self: end;
-		} */
 
 		.logo > img {
 			width: 50vh;
@@ -60,39 +62,63 @@
 		}
 		.login {
 			justify-self: center;
+			padding: 50vh 0 0 0;
 		}
 		.buttonHolder {
 			text-align: center;
 		}
 		input[type=button], input[type=submit] {
-			/* opacity: 0.5; */
-			border-radius: 25px;
-			padding: 10px 20px 10px 20px ; 
-			border: 2px solid rgb(81, 82, 81);
-			background: rgba(255, 255, 255, 0.2);
-			margin: 20px 0 0 0;
+			background-color: Transparent;
+			border: none;
+			width: 20vh;
+			height: 10vh;
 		}
+
+		#loginB {
+			background-image: url("/images/buttons/maing1.png");
+			background-size: 100%;
+		}
+
+		#regB {
+			background-image: url("/images/buttons/maing3.png");
+			background-size: 100%;
+		}
+
+		#login {
+			padding: 4vh;
+			background-color: rgb(0, 0, 0,0.5);
+		}
+
 		input[type=button]:hover, input[type=submit]:hover {
 			/* opacity: 1; */
-			background: rgba(255, 255, 255, 0.8); 
+			/* background: rgba(255, 255, 255, 0.8);  */
 		}
 
 		input[type=text], input[type=password] {
+			color: white;
 			background: transparent;
     		border: none;
-    		border-bottom: 1px solid #000000;
+    		border-bottom: 1px solid #ffffff;
 			padding: 0 0 0 4px;
+		}
+
+		.buttonHolder {
+			margin: 3vh 0 0 0;
 		}
 		
 		.item1, .item3 {
 			font-weight: bold;
+		}
+
+		.grid_input {
+			color: white;
 		}
 	</style>
 </head>
 
 <body>
 	<div class="grid-container">
-		<div class="logo"><img src="/images/Logos/logo.png"></div>
+		<!-- <div class="logo"><img src="/images/Logos/logo.png"></div> -->
 		<div class="login">
 			<div id="login">
 				<form id="login-form" action="#" method="POST">
@@ -103,8 +129,8 @@
 						<div class="item4"><input type="password" name="password" value="test4" /></div>
 					</div>
 					<div class="buttonHolder">
-						<input type="submit" value="Login" />
-						<input type="button" value="Register" onclick=" window.location = '/register.html'" />
+						<input type="submit" value="" id="loginB"/>
+						<input type="button"  onclick=" window.location = '/register.html'" id="regB"/>
 					</div>
 				</form>
 			</div>
