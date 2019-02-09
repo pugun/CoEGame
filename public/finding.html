@@ -27,7 +27,6 @@
 									tdname.className = "left";
 
 									let button = document.createElement("button");
-									// button.innerHTML = "FIGHT!";
 									button.id = Opponent[i].playerId;
 									button.className = "btn";
 
@@ -46,12 +45,6 @@
 									let p1 = userInfo.id;
 									let p2 = this.id;
 									window.location = "/fight.html?player1=" + p1 + "&player2=" + p2;
-								});
-
-								$("#wait").click(function () {	
-									console.log("H ere ");
-
-									window.location = "/fight.html?player2=19";
 								});
 
 							})
@@ -123,7 +116,6 @@
 <body>
 	<h1>Near Opponents</h1>
 	<table></table>
-	<!-- <button id="wait">waiting room</button> -->
 </body>
 
 </html>

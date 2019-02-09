@@ -12,8 +12,8 @@
 		clearInterval(sendGeoId);
 		let id;
 		let p1Maxhp, p2Maxhp;
-		
-		
+
+
 		let player1 = $_GET('player1'),
 			player2 = $_GET('player2');
 
@@ -41,7 +41,7 @@
 		}
 
 		$(document).ready(function () {
-			let hit = document.getElementById("sound_hit"); 
+			let hit = document.getElementById("sound_hit");
 			getUserInfo();
 			getId();
 			let turn = 0;
@@ -97,15 +97,14 @@
 			});
 
 			socket.on("updateState", serverState => {
-				
 				state = serverState.state;
 				console.log(state);
 				if (id == serverState.state.player[0].id) {
 					setTextHp(state, 1);
-					
+
 				} else if (id == serverState.state.player[1].id) {
 					setTextHp(state, 2);
-					
+
 				}
 				if (state.atkTurn != turn) {
 					console.log("DEF");
@@ -175,76 +174,53 @@
 
 		function getUserInfo() {
 			try {
-				if (player1 == null) {
-					console.log("wait room");
-					get("getUserInfo", res => {
-						if (res.ok) {
-							res.json()
-								.then(json => {
-									let user = json;
-									state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
-									state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
-									state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-									state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
-									state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
-									console.log(json);
+				get("getUserInfo", res => {
+					if (res.ok) {
+						res.json()
+							.then(json => {
+								let user = json;
+								state.player[0].hp += user.head.hp + user.body.hp + user.weapon.hp;
+								state.player[0].atk += user.head.attack + user.body.attack + user.weapon.attack;
+								state.player[0].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
+								state.player[0].def += user.head.defend + user.body.defend + user.weapon.defend;
+								state.player[0].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+								p1Maxhp = state.player[0].hp;
+								console.log("p1Maxhp = " + p1Maxhp);
+								console.log(json);
 
-									setImg(user, 1);
-									setText(user, 1);
-								}).then(result => {
+								setImg(user, 1);
+								setText(user, 1);
 
-								}).catch(err => {
-									console.log(err);
+								return get("getUserInfo?id=" + player2, res => {
+									if (res.ok) {
+										res.json()
+											.then(json => {
+												let user = json;
+												//player ฝั่งซ้าย
+												state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
+												state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
+												state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
+												state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
+												state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+
+												p2Maxhp = state.player[1].hp;
+												console.log("p2Maxhp = " + p2Maxhp);
+												setImg(user, 2);
+												setText(user, 2);
+
+											}).catch(err => {
+												console.log(err);
+											});
+									}
 								});
-						}
-					});
-				} else {
-					get("getUserInfo", res => {
-						if (res.ok) {
-							res.json()
-								.then(json => {
-									let user = json;
-									state.player[0].hp += user.head.hp + user.body.hp + user.weapon.hp;
-									state.player[0].atk += user.head.attack + user.body.attack + user.weapon.attack;
-									state.player[0].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-									state.player[0].def += user.head.defend + user.body.defend + user.weapon.defend;
-									state.player[0].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
-									p1Maxhp = state.player[0].hp;
-									console.log("p1Maxhp = " + p1Maxhp);
-									console.log(json);
+							}).then(result => {
+								socket.emit("start", state);
+							}).catch(err => {
+								console.log(err);
+							});
+					}
+				});
 
-									setImg(user, 1);
-									setText(user, 1);
-
-									return get("getUserInfo?id=" + player2, res => {
-										if (res.ok) {
-											res.json()
-												.then(json => {
-													let user = json;
-													state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
-													state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
-													state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-													state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
-													state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
-
-													p2Maxhp = state.player[1].hp;
-													console.log("p2Maxhp = " + p2Maxhp);
-													setImg(user, 2);
-													setText(user, 2);
-
-												}).catch(err => {
-													console.log(err);
-												});
-										}
-									});
-								}).then(result => {
-									socket.emit("start", state);
-								}).catch(err => {
-									console.log(err);
-								});
-						}
-					});
-				}
 			}
 			catch (err) {
 				alert(err);
@@ -279,7 +255,7 @@
 
 		function setTextHp(state, p) {
 			let p1hp, p2hp;
-			
+
 			if (p == 1) {
 				p1hp = (state.player[0].hp / p1Maxhp) * 100;
 				p2hp = (state.player[1].hp / p2Maxhp) * 100;
