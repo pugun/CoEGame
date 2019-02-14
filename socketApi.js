@@ -1,6 +1,9 @@
 var socket_io = require("socket.io");
 var io = socket_io();
 var socketApi = {};
+var loki = require('lokijs');
+var imdb = new loki('loki.json');
+var gameRoom = imdb.addCollection("gameRoom");
 
 socketApi.io = io;
 
@@ -12,8 +15,24 @@ io.on("connection", function(socket) {
     socket.on("chat message", function(msg) {
         console.log("message: " + msg);
     });
+    socket.on("sendChallenge", function (challenger, reciever) {
+        gameRoom.add({
+            player:{
+                challenger: challenger,
+                reciever: reciever
+            },
+            state: {}
+        });
+        io.emit("recieveChallenge", challenger, reciever);
+    })
+    socket.on("answerChallenge", function (challenger, reciever, message) {
+        socket.emit("answerChallenge", challenger, reciever, message);
+    });
+    socket.on("cancelChallenge", function (challenger, reciever) {
+        socket.emit("cancelChallenge", challenger, reciever);
+    });
     socket.on("start", function(state) {
-		console.log(state);
+        console.log(state);
         io.emit("start", {
             state: {
                 atkTurn: Math.floor(Math.random() * 2),
@@ -65,7 +84,7 @@ io.on("connection", function(socket) {
             if (damage < 0) { damage = 0 };
             state.player[defPlayer].hp -= damage;
 
-            if (state.player[defPlayer].hp <= 0) {    
+            if (state.player[defPlayer].hp <= 0) {
                 io.emit("end", {
                     winner: state.player[atkPlayer].id,
                     loser: state.player[defPlayer].id
@@ -86,7 +105,17 @@ io.on("connection", function(socket) {
             });
         }
     });
+    socket.on("finishAnimation", function(id) {
+        let state = getPlayerState();
+    });
 });
+
+// ดึงสถานะผู้เล่น
+// ข้อมูลเหมือน state
+
+function getPlayerState() {
+
+}
 
 socketApi.sendNotification = function() {
     io.sockets.emit("chat message", {msg: "Hello World!"});

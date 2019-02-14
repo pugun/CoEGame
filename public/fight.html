@@ -13,7 +13,6 @@
 		let id;
 		let p1Maxhp, p2Maxhp;
 
-
 		let player1 = $_GET('player1'),
 			player2 = $_GET('player2');
 
@@ -101,10 +100,13 @@
 				console.log(state);
 				if (id == serverState.state.player[0].id) {
 					setTextHp(state, 1);
+					animateOnHit(".img20");
+					animateOnHit(".img21");
+					animateOnHit(".img22"); 
+					animateOnHit(".img23");
 
 				} else if (id == serverState.state.player[1].id) {
 					setTextHp(state, 2);
-
 				}
 				if (state.atkTurn != turn) {
 					console.log("DEF");
@@ -155,6 +157,7 @@
 			});
 		}
 
+		//ดึงข้อมูลจากหน้าก่อน
 		function $_GET(param) {
 			var vars = {};
 			window.location.href.replace(location.hash, '').replace(
@@ -253,6 +256,12 @@
 			}
 		}
 
+		function animateOnHit(img) {
+			$(img).attr('animation-name','onHit');
+			$(img).attr('animation-duration','0.5s');
+			$(img).attr('animation-iteration-count','4');
+		}
+
 		function setTextHp(state, p) {
 			let p1hp, p2hp;
 
@@ -281,7 +290,7 @@
 				$("#hpm2").attr('style', 'width: ' + p2hp + '%');
 			}
 		}
-		socket.emit("chat message", "AHHHHH");
+		// socket.emit("chat message", "AHHHHH");
 	</script>
 	<style>
 		html {
@@ -320,9 +329,17 @@
 			background-image: url("/images/buttons/botanatk2.png");
 			background-size: 100%;
 		}
+		#btn1:hover {
+			background: url("/images/buttons/botanatk2.png") 0 -100%;
+			background-size: 100%;
+		}
 
 		#btn2 {
 			background-image: url("/images/buttons/botanmatk.png");
+			background-size: 100%;
+		}
+		#btn2:hover {
+			background: url("/images/buttons/botanmatk.png") 0 -100%;
 			background-size: 100%;
 		}
 
@@ -330,9 +347,17 @@
 			background-image: url("/images/buttons/botandef2.png");
 			background-size: 100%;
 		}
+		#btn3:hover {
+			background: url("/images/buttons/botandef2.png") 0 -100%;
+			background-size: 100%;
+		}
 
 		#btn4 {
 			background-image: url("/images/buttons/botanmdef.png");
+			background-size: 100%;
+		}
+		#btn4:hover {
+			background: url("/images/buttons/botanmdef.png") 0 -100%;
 			background-size: 100%;
 		}
 
@@ -393,6 +418,11 @@
 			top: 30vh;
 			z-index: -3;
 			left: 55%;
+		}
+
+		@keyframes onHit {
+			0%   {left:0%;}
+			100% {left:100%;}
 		}
 
 		#name2,
@@ -595,9 +625,6 @@
 			margin: 30vh 0 0 5vh;
 		}
 
-		/* #btnholderAtk, #btnholderDef {
-			padding: 1vh 0 0 0;
-		} */
 	</style>
 </head>
 
@@ -634,7 +661,6 @@
 			<img class="img22">
 		</div>
 		<div class="item4">
-			<!-- <br><br><br><br><br><br> -->
 			<div class="Choice">
 				<table>
 

@@ -4,8 +4,12 @@
 	<link href="https://fonts.googleapis.com/css?family=Kanit" rel="stylesheet">
 	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<script src="./javascripts/getPost.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
 	<script>
 		"use strict";
+		let socket = io();
+
+		var available = true;
 
 		$(document).ready(function () {
 			try {
@@ -40,11 +44,18 @@
 
 									table.appendChild(tr);
 								}
-								$(".btn").click(function () {	
-									console.log("Here ");
-									let p1 = userInfo.id;
-									let p2 = this.id;
-									window.location = "/fight.html?player1=" + p1 + "&player2=" + p2;
+								$(".btn").click(function () {
+									let self = userInfo.id;
+									let opponent = this.id;
+									socket.emit("sendChallenge", self, opponent);
+									$('#waitModal').css('display', 'block');
+									//เปิดไปหน้า fight
+									socket.on("answerChallenge", function (self, opponent, message) {
+										if (self == userInfo.id)
+											if (message == "accept")
+												window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+											else fightCanceled();
+									});
 								});
 
 							})
@@ -52,14 +63,47 @@
 								console.log(err);
 							});
 					}
+					recieveChallenge();
 				});
+
+
 			}
 			catch (err) {
 				alert(err);
 			}
 
+		});
 
-		})
+		function recieveChallenge() {
+			if (available)
+				socket.on("recieveChallenge", (opponent, self) => {
+					if (self == userInfo.id) {
+
+						socket.on("cancelChallenge", (opponentC, selfC) => {
+							if (selfC != userInfo.id || opponent != opponentC)
+								fightCanceled();
+						});
+
+						$('#challengeModal').css('display', 'block');
+
+						$('#acptBtn').unbind('click');
+						$('#rejBtn').unbind('click');
+
+						$('#acptBtn').click(function () {
+							socket.emit('answerChallenge', opponent, self, "accept");
+						});
+						$('#rejBtn').click(function () {
+							socket.emit('answerChallenge', opponent, self, "reject");
+						});
+					}
+				});
+		}
+
+		function fightCanceled() {
+			socket.leaveAll();
+			recieveChallenge();
+			available = true;
+		}
 	</script>
 	<style>
 		html {
@@ -100,6 +144,15 @@
 			height: 10vh;
 		}
 
+		.btn:hover {
+			background: url("/images/buttons/maing5.png") 0 -100%;
+			background-size: 100%;
+			background-color: Transparent;
+			border: none;
+			width: 20vh;
+			height: 10vh;
+		}
+
 		input[type=button]:hover,
 		input[type=submit]:hover,
 		.btn:hover {
@@ -110,12 +163,58 @@
 		h1 {
 			font-size: 80px;
 		}
+
+		.modalbg {
+			display: none;
+			position: fixed;
+			z-index: 1;
+			padding-top: 10vh;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			overflow: auto;
+			background-color: rgb(0, 0, 0);
+			background-color: rgba(0, 0, 0, 0.4);
+		}
+
+		.modal-content {
+			background-color: #fefefe;
+			margin: auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 80%;
+		}
+
+		.modal-content>p {
+			font-size: 30pt;
+			font-weight: bold;
+		}
+
+		#waitModal {
+			display: none;
+		}
+
+		#challengeModal {
+			display: none;
+		}
 	</style>
 </head>
 
 <body>
 	<h1>Near Opponents</h1>
 	<table></table>
+	<div class="modalbg">
+		<div id="waitModal" class="modal-content">
+			<p>Waiting for opponent...</p>
+			<button id="cancelBtn">Cancel</button>
+		</div>
+		<div id="challengeModal" class="modal-content">
+			<p></p>
+			<button id="acptBtn">Accept</button>
+			<button id="rejBtn">Reject</button>
+		</div>
+	</div>
 </body>
 
 </html>
