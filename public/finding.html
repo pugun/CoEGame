@@ -34,7 +34,6 @@
 									button.id = Opponent[i].playerId;
 									button.className = "btn";
 
-
 									let tdbutton = document.createElement("td");
 									tdbutton.appendChild(button);
 									tdbutton.className = "right";
@@ -48,13 +47,21 @@
 									let self = userInfo.id;
 									let opponent = this.id;
 									socket.emit("sendChallenge", self, opponent);
+
+									$('#challengeModal').css('display', 'none');
 									$('#waitModal').css('display', 'block');
+									$('.modalbg').css('display', 'block');
 									//เปิดไปหน้า fight
+									console.log('click btn');
 									socket.on("answerChallenge", function (self, opponent, message) {
-										if (self == userInfo.id)
-											if (message == "accept")
+										console.log(self + opponent + message);
+										if (self == userInfo.id) {
+											if (message == "accept") {
+												console.log('got accept');
 												window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+											}
 											else fightCanceled();
+										}
 									});
 								});
 
@@ -78,19 +85,23 @@
 			if (available)
 				socket.on("recieveChallenge", (opponent, self) => {
 					if (self == userInfo.id) {
+						console.log('wait for receive challenge')
 
 						socket.on("cancelChallenge", (opponentC, selfC) => {
-							if (selfC != userInfo.id || opponent != opponentC)
+							if (selfC == userInfo.id || opponent == opponentC)
 								fightCanceled();
 						});
 
+						$('#waitModal').css('display', 'none');
 						$('#challengeModal').css('display', 'block');
+						$('.modalbg').css('display', 'block');
 
 						$('#acptBtn').unbind('click');
 						$('#rejBtn').unbind('click');
 
 						$('#acptBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "accept");
+							window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
 						});
 						$('#rejBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "reject");
@@ -133,7 +144,7 @@
 			vertical-align: middle;
 		}
 
-		.left {}
+		/*.left {}*/
 
 		.btn {
 			background-image: url("/images/buttons/maing5.png");

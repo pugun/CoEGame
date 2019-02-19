@@ -4,110 +4,182 @@ var socketApi = {};
 var loki = require('lokijs');
 var imdb = new loki('loki.json');
 var gameRoom = imdb.addCollection("gameRoom");
+var db = require('./models');
+var sequelize = require('sequelize');
+const util = require("util");
+
 
 socketApi.io = io;
 
-io.on("connection", function(socket) {
-    console.log("A user connected");
-    socket.on("disconnect", function() {
-        console.log("user disconnected");
-    });
-    socket.on("chat message", function(msg) {
-        console.log("message: " + msg);
-    });
-    socket.on("sendChallenge", function (challenger, reciever) {
-        gameRoom.add({
-            player:{
-                challenger: challenger,
-                reciever: reciever
-            },
-            state: {}
-        });
-        io.emit("recieveChallenge", challenger, reciever);
-    })
-    socket.on("answerChallenge", function (challenger, reciever, message) {
-        socket.emit("answerChallenge", challenger, reciever, message);
-    });
-    socket.on("cancelChallenge", function (challenger, reciever) {
-        socket.emit("cancelChallenge", challenger, reciever);
-    });
-    socket.on("start", function(state) {
+io.on("connection", function (socket) {
+	console.log("A user connected");
+	socket.on("disconnect", function () {
+		console.log("user disconnected");
+	});
+	socket.on("chat message", function (msg) {
+		console.log("message: " + msg);
+	});
+	socket.on("sendChallenge", function (challenger, reciever) {
+		(async () => {
+			try {
+				let userChallenger = await db.User.findOne({
+					where: { id: challenger },
+					raw: true,
+					include: [{
+						model: db.Character,
+						attributes: { exclude: ["createdAt", "updatedAt", "id", "UserId"] }
+					}]
+				});
+				let userReciever = await db.User.findOne({
+					where: { id: reciever },
+					raw: true,
+					include: [{
+						model: db.Character,
+						attributes: { exclude: ["createdAt", "updatedAt", "id", "UserId", ""] }
+					}]
+				});
+				let userChallengerEquipment = await db.Item.findAll({
+					where: sequelize.or({ id: userChallenger["Characters.head"] }, { id: userChallenger["Characters.body"] }, { id: userChallenger["Characters.weapon"] })
+					, raw: true
+				});
+				let userRecieverEquipment = await db.Item.findAll({
+					where: sequelize.or({ id: userReciever["Characters.head"] }, { id: userReciever["Characters.body"] }, { id: userReciever["Characters.weapon"] })
+					, raw: true
+				});
+				let userChallengerPower = {
+					hp: 0,
+					attack: 0,
+					mattack: 0,
+					defend: 0,
+					mdefend: 0
+				}, userRecieverPower = {
+					hp: 0,
+					attack: 0,
+					mattack: 0,
+					defend: 0,
+					mdefend: 0
+				};
+				for (let i = 0; i < userChallengerEquipment.length; i++) {
+					userChallengerPower.hp += userChallengerEquipment[i].hp;
+					userChallengerPower.attack += userChallengerEquipment[i].attack;
+					userChallengerPower.mattack += userChallengerEquipment[i].mattack;
+					userChallengerPower.defend += userChallengerEquipment[i].defend;
+					userChallengerPower.mdefend += userChallengerEquipment[i].mdefend;
+				}
+
+				for (let i = 0; i < userRecieverEquipment.length; i++) {
+					userRecieverPower.hp += userRecieverEquipment[i].hp;
+					userRecieverPower.attack += userRecieverEquipment[i].attack;
+					userRecieverPower.mattack += userRecieverEquipment[i].mattack;
+					userRecieverPower.defend += userRecieverEquipment[i].defend;
+					userRecieverPower.mdefend += userRecieverEquipment[i].mdefend;
+				}
+
+				gameRoom.insert({
+					challenger: Number(challenger),
+					reciever: Number(reciever),
+					atkTurn: Math.floor(Math.random() * 2),
+					state: [
+						{
+							hp: 15 + userChallengerPower.hp,
+							atk: 3 + userChallengerPower.attack,
+							matk: 2 + userChallengerPower.mattack,
+							def: 1 + userChallengerPower.defend,
+							mdef: 1 + userChallengerPower.mdefend,
+							action: "Waiting"
+						},
+						{
+							hp: 15 + userRecieverPower.hp,
+							atk: 3 + userRecieverPower.attack,
+							matk: 2 + userRecieverPower.mattack,
+							def: 1 + userRecieverPower.defend,
+							mdef: 1 + userRecieverPower.mdefend,
+							action: "Waiting"
+						}
+					]
+				});
+				io.emit("recieveChallenge", challenger, reciever);
+			}
+			catch (err) {
+				console.log(err);
+			}
+		})();
+
+	});
+	socket.on("answerChallenge", function (challenger, reciever, message) {
+		console.log('got answer ' + message);
+		if (message == 'accept') {
+
+		} else if (message == 'reject') {
+
+		}
+		io.emit("answerChallenge", challenger, reciever, message);
+	});
+	socket.on("cancelChallenge", function (challenger, reciever) {
+		console.log('got cancel');
+		io.emit("cancelChallenge", challenger, reciever);
+	});
+	socket.on("start", function (userId) {
+        console.log("USER ID " + userId);
+        let state = gameRoom.findOne({challenger: Number(userId)});
+		console.log("State Gameroom");
         console.log(state);
-        io.emit("start", {
-            state: {
-                atkTurn: Math.floor(Math.random() * 2),
-                player:[
-                    {
-                        id: state.player[0].id,
-                        hp: state.player[0].hp,
-                        atk: state.player[0].atk,
-                        matk: state.player[0].matk,
-                        def: state.player[0].def,
-                        mdef: state.player[0].mdef,
-                        action: "Waiting"
-                    },{
-                        id: state.player[1].id,
-                        hp: state.player[1].hp,
-                        atk: state.player[1].atk,
-                        matk: state.player[1].matk,
-                        def: state.player[1].def,
-                        mdef: state.player[1].mdef,
-                        action: "Waiting"
-                    }
-                ]
-            }
-        });
-    });
-    socket.on("action", function(playerNum, state, action) {
-        console.log(playerNum);
-        console.log(state);
-        console.log(action);
-        state.player[playerNum].action = action;
-        if (state.player[0].action !== "Waiting" && state.player[1].action !== "Waiting") {
-            let atkPlayer = state.atkTurn;
-            let defPlayer = (state.atkTurn === 0) ? 1 : 0;
-            console.log("atacking: " + atkPlayer)
-            console.log("defending: " + defPlayer);
-            let atkAction = state.player[atkPlayer].action;
-            let defAction = state.player[defPlayer].action;
+		console.log("State All GameRoom");
+        console.log(gameRoom.find());
+        //util.inspect(state, false, null)
+		io.emit("start", state);
+	});
+	socket.on("action", function (playerNum, action, userId) {
+		let state = gameRoom.findOne({challenger: Number(userId)});
+		console.log(playerNum);
+		console.log(state);
+		console.log(action);
+		state.state[playerNum].action = action;
+		if (state.state[0].action !== "Waiting" && state.state[1].action !== "Waiting") {
+			let atkPlayer = state.atkTurn;
+			let defPlayer = state.atkTurn === 0 ? 1 : 0;
+			console.log("atacking: " + atkPlayer);
+			console.log("defending: " + defPlayer);
+			let atkAction = state.state[atkPlayer].action;
+			let defAction = state.state[defPlayer].action;
 
-            let atk = state.player[atkPlayer].atk;
-            let matk = state.player[atkPlayer].matk;
-            let def = state.player[defPlayer].def;
-            let mdef = state.player[defPlayer].mdef;
-            let damage;
+			let atk = state.state[atkPlayer].atk;
+			let matk = state.state[atkPlayer].matk;
+			let def = state.state[defPlayer].def;
+			let mdef = state.state[defPlayer].mdef;
+			let damage;
 
-            if (state.player[defPlayer].action === "def") { mdef = 0; }
-            else { def = 0; }
-            if (state.player[atkPlayer].action === "atk") { damage = atk - def }
-            else { damage = matk - mdef }
-            if (damage < 0) { damage = 0 };
-            state.player[defPlayer].hp -= damage;
+			if (state.state[defPlayer].action === "def") { mdef = 0; }
+			else { def = 0; }
+			if (state.state[atkPlayer].action === "atk") { damage = atk - def; }
+			else { damage = matk - mdef; }
+			if (damage < 0) { damage = 0; }
+			state.state[defPlayer].hp -= damage;
 
-            if (state.player[defPlayer].hp <= 0) {
-                io.emit("end", {
-                    winner: state.player[atkPlayer].id,
-                    loser: state.player[defPlayer].id
-                });
-            }
-            else {
-                state.player[0].action = "Waiting";
-                state.player[1].action = "Waiting";
-                state.atkTurn = (state.atkTurn === 1) ? 0 : 1;
-                io.emit("updateState",{
-                    state: state
-                });
-            }
-        }
-        else {
-            io.emit("updateState",{
-                state: state
-            });
-        }
-    });
-    socket.on("finishAnimation", function(id) {
-        let state = getPlayerState();
-    });
+			if (state.state[defPlayer].hp <= 0) {
+				io.emit("end", {
+					winner: state.player[atkPlayer].id,
+					loser: state.player[defPlayer].id
+				});
+			}
+			else {
+				state.state[0].action = "Waiting";
+				state.state[1].action = "Waiting";
+				state.atkTurn = state.atkTurn === 1 ? 0 : 1;
+				io.emit("updateState", {
+					state: state
+				});
+			}
+		}
+		else {
+			io.emit("updateState", {
+				state: state
+			});
+		}
+	});
+	socket.on("finishAnimation", function (id) {
+		let state = getPlayerState();
+	});
 });
 
 // ดึงสถานะผู้เล่น
@@ -117,12 +189,12 @@ function getPlayerState() {
 
 }
 
-socketApi.sendNotification = function() {
-    io.sockets.emit("chat message", {msg: "Hello World!"});
-}
+socketApi.sendNotification = function () {
+	io.sockets.emit("chat message", { msg: "Hello World!" });
+};
 
-let prepareFight = function() {
+let prepareFight = function () {
 
-}
+};
 
 module.exports = socketApi;

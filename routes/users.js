@@ -9,15 +9,15 @@ var children = imdb.addCollection('children');
 var geoLocation = imdb.addCollection("geoLocation");
 
 router.get("/lokijuti", function (req, res) {
-	children.insert({name:'Sleipnir', legs: 8});
-	children.insert({name:'Jormungandr', legs: 0});
-	children.insert({name:'Hel', legs: 2});
+	children.insert({ name: 'Sleipnir', legs: 8 });
+	children.insert({ name: 'Jormungandr', legs: 0 });
+	children.insert({ name: 'Hel', legs: 2 });
 	res.sendStatus(200);
-})
+});
 
 router.get("/lokishow", function (req, res) {
 	res.status(200).send(children.find());
-})
+});
 
 /* GET users listing. */
 router.get('/', function (req, res, next) {
@@ -39,7 +39,7 @@ router.get("/isLogin", (req, res) => {
 	else {
 		res.sendStatus(401);
 	}
-})
+});
 
 router.post("/login", passport.authenticate("local"), (req, res) => {
 	res.send("Login successfully");
@@ -109,12 +109,12 @@ router.get("/getInventory", isLoggedIn, (req, res) => {
 
 router.post("/qrSent", isLoggedIn, (req, res) => {
 	db.Qr.findOne({
-		where: { qrcode: req.body.qrcode },
+		where: { qrcode: req.body.qrcode }
 	}).then(qr => {
 		return db.Inventory.create({
 			UserId: req.user.id,
 			ItemId: qr.ItemId
-		})
+		});
 	}).then(result => {
 		res.sendStatus(200);
 	}).catch(err => {
@@ -125,21 +125,21 @@ router.post("/qrSent", isLoggedIn, (req, res) => {
 
 router.post("/equipItem", isLoggedIn, (req, res) => {
 	let field;
-	if(req.body.slot == 1) {
+	if(req.body.slot === 1) {
 		field = "head";
-	} else if(req.body.slot == 2) {
+	} else if(req.body.slot === 2) {
 		field = "body";
-	} else if(req.body.slot == 3){
+	} else if(req.body.slot === 3){
 		field = "weapon";
 	}
 	db.Character.findOne({
-		where: { UserId: req.user.id },
+		where: { UserId: req.user.id }
 	}).then(result => {
 		return result.update({
 			head: req.body.itemId,
 			body: req.body.itemId,
 			weapon: req.body.itemId
-		}, {fields: [field]})
+		}, { fields: [field] });
 	}).then(result => {
 		res.sendStatus(200);
 	}).catch(err => {
@@ -151,11 +151,11 @@ router.post("/equipItem", isLoggedIn, (req, res) => {
 //user belongs to passport
 router.get("/getUserInfo", isLoggedIn, (req, res) => {
 	let id = req.user.id;
-	if(req.query.id != null) {
+	if (req.query.id != null) {
 		id = req.query.id;
 	}
 	console.log(id);
-	
+
 	let data = {};
 	db.User.findOne({
 		where: { id: id }
@@ -173,41 +173,41 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 		}).then(head => {
 			data.head = {};
 			if (head === null) {
-				data.head.attack = 0,
-				data.head.mattack = 0,
-				data.head.defend = 0,
-				data.head.mdefend = 0,
-				data.head.hp = 0
+				data.head.attack = 0;
+				data.head.mattack = 0;
+				data.head.defend = 0;
+				data.head.mdefend = 0;
+				data.head.hp = 0;
 			} else {
 				data.head = head;
 			}
 			return db.Item.findOne({
 				where: { id: character.body },
 				raw: true
-			})
+			});
 		}).then(body => {
 			data.body = {};
 			if (body === null) {
-				data.body.attack = 0,
-				data.body.mattack = 0,
-				data.body.defend = 0,
-				data.body.mdefend = 0,
-				data.body.hp = 0
+				data.body.attack = 0;
+				data.body.mattack = 0;
+				data.body.defend = 0;
+				data.body.mdefend = 0;
+				data.body.hp = 0;
 			} else {
 				data.body = body;
 			}
 			return db.Item.findOne({
 				where: { id: character.weapon },
 				raw: true
-			})
+			});
 		}).then(weapon => {
 			data.weapon = {};
 			if (weapon === null) {
-				data.weapon.attack = 0,
-				data.weapon.mattack = 0,
-				data.weapon.defend = 0,
-				data.weapon.mdefend = 0,
-				data.weapon.hp = 0
+				data.weapon.attack = 0;
+				data.weapon.mattack = 0;
+				data.weapon.defend = 0;
+				data.weapon.mdefend = 0;
+				data.weapon.hp = 0;
 			} else {
 				data.weapon = weapon;
 			}
@@ -215,8 +215,8 @@ router.get("/getUserInfo", isLoggedIn, (req, res) => {
 	}).then(result => {
 		res.status(200).json(data);
 	}).catch(err => {
-		
 		res.sendStatus(500);
+		console.log(err);
 	});
 });
 
@@ -263,12 +263,12 @@ router.get("/findPlayer", isLoggedIn, (req, res) => {
 	}).catch(err => {
 		console.log(err);
 		res.sendStatus(500);
-	})
+	});
 	
 });
 
 router.post("/postGeo", isLoggedIn, (req, res) => {
-	var user = geoLocation.findOne({id: req.user.id})
+	var user = geoLocation.findOne({ id: req.user.id });
 	if(user === null) {
 		geoLocation.insert({
 			id: req.user.id ,

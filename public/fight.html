@@ -44,20 +44,22 @@
 			getUserInfo();
 			getId();
 			let turn = 0;
+
 			socket.on("start", serverState => {
+				console.log(serverState);
 				state = serverState.state;
-				console.log(state);
-				if (id == serverState.state.player[0].id) {
+
+				if (id == serverState.challenger) {
 					turn = 0;
 					setTextHp(state, 1)
 					console.log("player1");
 
-				} else if (id == serverState.state.player[1].id) {
+				} else if (id == serverState.reciever) {
 					turn = 1;
 					setTextHp(state, 2)
 					console.log("player2");
 				}
-				if (serverState.state.atkTurn == turn) {
+				if (serverState.atkTurn == turn) {
 					console.log("ATK");
 					$('#head').html("Attack");
 					$('#btn3').attr('style', 'display: none;');
@@ -74,23 +76,23 @@
 				}
 				$('#btn1').click(function () {
 					console.log("atk");
-					socket.emit("action", turn, state, "atk");
-					console.log(state.player[1].hp);
+					socket.emit("action", turn, "atk", id);
+					console.log(state[1].hp);
 				});
 				$('#btn2').click(function () {
 					console.log("matk");
-					socket.emit("action", turn, state, "matk");
-					console.log(state.player[1].hp);
+					socket.emit("action", turn, "matk", id);
+					console.log(state[1].hp);
 				});
 				$('#btn3').click(function () {
 					console.log("def");
-					socket.emit("action", turn, state, "def");
-					console.log(state.player[1].hp);
+					socket.emit("action", turn, "def", id);
+					console.log(state[1].hp);
 				});
 				$('#btn4').click(function () {
 					console.log("mdef");
-					socket.emit("action", turn, state, "mdef");
-					console.log(state.player[1].hp);
+					socket.emit("action", turn, "mdef", id);
+					console.log(state[1].hp);
 				});
 
 			});
@@ -98,17 +100,17 @@
 			socket.on("updateState", serverState => {
 				state = serverState.state;
 				console.log(state);
-				if (id == serverState.state.player[0].id) {
+				if (id == serverState.challenger) {
 					setTextHp(state, 1);
-					animateOnHit(".img20");
-					animateOnHit(".img21");
-					animateOnHit(".img22"); 
-					animateOnHit(".img23");
+					// animateOnHit(".img20");
+					// animateOnHit(".img21");
+					// animateOnHit(".img22");
+					// animateOnHit(".img23");
 
-				} else if (id == serverState.state.player[1].id) {
+				} else if (id == serverState.reciever) {
 					setTextHp(state, 2);
 				}
-				if (state.atkTurn != turn) {
+				if (serverState.atkTurn != turn) {
 					console.log("DEF");
 					$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #CAF5CB);');
 					$('#head').html("Defend");
@@ -199,6 +201,7 @@
 										res.json()
 											.then(json => {
 												let user = json;
+												console.log(json);
 												//player ฝั่งซ้าย
 												state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
 												state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
@@ -217,7 +220,8 @@
 									}
 								});
 							}).then(result => {
-								socket.emit("start", state);
+								//แก้ state เป็น id
+								socket.emit("start", player1);
 							}).catch(err => {
 								console.log(err);
 							});
@@ -257,19 +261,19 @@
 		}
 
 		function animateOnHit(img) {
-			$(img).attr('animation-name','onHit');
-			$(img).attr('animation-duration','0.5s');
-			$(img).attr('animation-iteration-count','4');
+			$(img).attr('animation-name', 'onHit');
+			$(img).attr('animation-duration', '0.5s');
+			$(img).attr('animation-iteration-count', '4');
 		}
 
 		function setTextHp(state, p) {
 			let p1hp, p2hp;
 
 			if (p == 1) {
-				p1hp = (state.player[0].hp / p1Maxhp) * 100;
-				p2hp = (state.player[1].hp / p2Maxhp) * 100;
-				$("#hp1").html(state.player[0].hp);
-				$("#hp2").html(state.player[1].hp);
+				p1hp = (state[0].hp / p1Maxhp) * 100;
+				p2hp = (state[1].hp / p2Maxhp) * 100;
+				$("#hp1").html(state[0].hp);
+				$("#hp2").html(state[1].hp);
 
 				console.log("hpm1: " + p1hp);
 				console.log("hpm2: " + p2hp);
@@ -278,10 +282,10 @@
 				$("#hpm2").attr('style', 'width: ' + p2hp + '%');
 			}
 			if (p == 2) {
-				p1hp = (state.player[1].hp / p1Maxhp) * 100;
-				p2hp = (state.player[0].hp / p2Maxhp) * 100;
-				$("#hp1").html(state.player[1].hp);
-				$("#hp2").html(state.player[0].hp);
+				p1hp = (state[1].hp / p1Maxhp) * 100;
+				p2hp = (state[0].hp / p2Maxhp) * 100;
+				$("#hp1").html(state[1].hp);
+				$("#hp2").html(state[0].hp);
 
 				console.log("hpm1: " + p1hp);
 				console.log("hpm2: " + p2hp);
@@ -361,8 +365,8 @@
 			background-size: 100%;
 		}
 
-		.btn:hover {
-		}
+		/*.btn:hover {
+		}*/
 
 /* IMG CHARACTER */
 		img {
@@ -571,6 +575,7 @@
 			background-size: 50px 50px;
 			-webkit-animation: move 2s linear infinite;
 			-moz-animation: move 2s linear infinite;
+			animation: move 2s linear infinite;
 			-webkit-border-top-right-radius: 8px;
 			-webkit-border-bottom-right-radius: 8px;
 			-moz-border-radius-topright: 8px;
@@ -614,6 +619,7 @@
 		.nostripes>span:after {
 			-webkit-animation: none;
 			-moz-animation: none;
+			animation: none;
 			background-image: none;
 		}
 
@@ -634,7 +640,7 @@
 	</audio>
 	<div class="grid-container">
 		<div class="item1">
-			<h1 id="head">Attack</h1>
+			<h1 id="head">Waiting..</h1>
 		</div>
 		<div class="item2">
 			<h1 id="name1">P1</h1>

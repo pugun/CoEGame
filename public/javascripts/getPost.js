@@ -7,7 +7,7 @@ let sendGeo = new Promise(function (resolve, reject) {
 	getGeo();
 	// sendGeoId = setInterval(getGeo, 7500);
 
-})
+});
 
 getInfo();
 
@@ -23,7 +23,7 @@ get("isLogin", res => {
 			window.location = "/profile.html";
 		}
 	}
-})
+});
 
 function get(endPoint, func) {
 	try {
@@ -101,7 +101,7 @@ function getGeo() {
 //confirm box
 function challenge(id) {
 	var r = confirm("Press a button!");
-	if (r == true) {
+	if (r === true) {
 		// txt = "You pressed OK!";
 	} else {
 		// txt = "You pressed Cancel!";
@@ -115,10 +115,8 @@ function getInfo() {
 			res.json().then(json => {
 				console.log(json);
 				userInfo = json;
-			})
-			
-			
-		})
+			});
+		});
 	}
 	catch(err) {
 		alert(err);
