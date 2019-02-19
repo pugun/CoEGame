@@ -22,6 +22,7 @@ io.on("connection", function (socket) {
 	});
 
 	socket.on("sendChallenge", function (challenger, reciever) {
+		io.emit("recieveChallenge", challenger, reciever);
 		
 
 	});
@@ -83,8 +84,10 @@ io.on("connection", function (socket) {
 						userRecieverPower.defend += userRecieverEquipment[i].defend;
 						userRecieverPower.mdefend += userRecieverEquipment[i].mdefend;
 					}
-
-					if (gameRoom.find({ challenger: { '$in': [challenger, reciever] } }) == null) {
+				
+					console.log("before create room");
+					// if (gameRoom.find({ challenger: { '$in': [challenger, reciever] } }) == null) {
+						console.log("create room");
 						gameRoom.insert({
 							challenger: Number(challenger),
 							reciever: Number(reciever),
@@ -107,10 +110,10 @@ io.on("connection", function (socket) {
 									action: "Waiting"
 								}
 							]
-						});	
-					}
-	
-					io.emit("recieveChallenge", challenger, reciever);
+						});
+						io.emit('roomCreated', challenger, reciever);
+						console.log('roomCreted emited!!');
+					// }
 				}
 				catch (err) {
 					console.log(err);

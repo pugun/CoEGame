@@ -44,13 +44,16 @@
 			]
 		}
 
-		$(document).ready(async function () {
+		$(document).ready(function () {
 			let hit = document.getElementById('sound_hit');
-			getUserInfo();
 			getId();
 
-			let serverState = await socket.on('start');
-			checkStart(serverState);
+			socket.emit('start', id);
+
+			socket.on('start', function(serverState) {
+				console.log(serverState);
+				checkStart(serverState);
+			});
 
 			$('#btn1').click(function () {
 				console.log("atk");
@@ -88,6 +91,8 @@
 		}
 
 		function startGame(serverState) {
+			console.log(serverState);
+			getUserInfo(serverState);
 			updateHP(serverState);
 			updateTurn(serverState);
 			socket.on("updateState", updateState);
@@ -254,62 +259,51 @@
 
 		console.log(player1 + player2);
 
-		// function getUserInfo() {
-		// 	try {
-		// 		get("getUserInfo", res => {
-		// 			if (res.ok) {
-		// 				res.json()
-		// 					.then(json => {
-		// 						let user = json;
-		// 						state.player[0].hp += user.head.hp + user.body.hp + user.weapon.hp;
-		// 						state.player[0].atk += user.head.attack + user.body.attack + user.weapon.attack;
-		// 						state.player[0].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-		// 						state.player[0].def += user.head.defend + user.body.defend + user.weapon.defend;
-		// 						state.player[0].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
-		// 						p1Maxhp = state.player[0].hp;
-		// 						console.log("p1Maxhp = " + p1Maxhp);
-		// 						console.log(json);
+		function getUserInfo(serverState) {
+			try {
+				console.log(serverState);
+				// p1Maxhp = (playerNumber == 0 ? serverState.state[0].hp : serverState.state[1].hp);
+				// p2Maxhp = (playerNumber == 0 ? serverState.state[1].hp : serverState.state[0].hp);
 
-		// 						setImg(user, 1);
-		// 						setText(user, 1);
+				get("getUserInfo", res => {
+					if (res.ok) {
+						res.json()
+							.then(json => {
+								let user = json;
+								console.log("p1Maxhp = " + p1Maxhp);
+								console.log(json);
 
-		// 						return get("getUserInfo?id=" + player2, res => {
-		// 							if (res.ok) {
-		// 								res.json()
-		// 									.then(json => {
-		// 										let user = json;
-		// 										console.log(json);
-		// 										//player ฝั่งซ้าย
-		// 										state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
-		// 										state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
-		// 										state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-		// 										state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
-		// 										state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+								setImg(user, 1);
+								setText(user, 1);
 
-		// 										p2Maxhp = state.player[1].hp;
-		// 										console.log("p2Maxhp = " + p2Maxhp);
-		// 										setImg(user, 2);
-		// 										setText(user, 2);
+								return get("getUserInfo?id=" + player2, res => {
+									if (res.ok) {
+										res.json()
+											.then(json => {
+												let user = json;
+												console.log(json);
+												console.log("p2Maxhp = " + p2Maxhp);
+												setImg(user, 2);
+												setText(user, 2);
 
-		// 									}).catch(err => {
-		// 										console.log(err);
-		// 									});
-		// 							}
-		// 						});
-		// 					}).then(result => {
-		// 						//แก้ state เป็น id
-		// 						socket.emit("start", player1);
-		// 					}).catch(err => {
-		// 						console.log(err);
-		// 					});
-		// 			}
-		// 		});
+											}).catch(err => {
+												console.log(err);
+											});
+									}
+								});
+							}).then(result => {
+								// socket.emit("start", player1);
+							}).catch(err => {
+								console.log(err);
+							});
+					}
+				});
 
-		// 	}
-		// 	catch (err) {
-		// 		alert(err);
-		// 	}
-		// }
+			}
+			catch (err) {
+				alert(err);
+			}
+		}
 
 		function setImg(user, p) {
 			let head = user.head.name;
@@ -344,6 +338,7 @@
 		}
 
 		function setTextHp(state, p) {
+			console.log(state);
 			let p1hp, p2hp;
 
 			if (p == 1) {

@@ -58,7 +58,10 @@
 										if (self == userInfo.id) {
 											if (message == "accept") {
 												console.log('got accept');
-												window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+												socket.on("roomCreated", function (challenger, reciever) {
+													if (challenger == userInfo.id || reciever == userInfo.id)
+														window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+												});
 											}
 											else fightCanceled();
 										}
@@ -83,7 +86,8 @@
 
 		function recieveChallenge() {
 			if (available)
-				socket.on("recieveChallenge", (opponent, self) => {
+				socket.on("recieveChallenge", function (opponent, self) {
+					console.log('get recieve challenge');
 					if (self == userInfo.id) {
 						console.log('wait for receive challenge')
 
@@ -101,10 +105,14 @@
 
 						$('#acptBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "accept");
-							window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+							socket.on('roomCreated', function (challenger, receiver) {
+								if (challenger == userInfo.id || receiver == userInfo.id)
+									window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+							});
 						});
 						$('#rejBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "reject");
+
 						});
 					}
 				});
