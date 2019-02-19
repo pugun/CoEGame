@@ -12,6 +12,11 @@
 		clearInterval(sendGeoId);
 		let id;
 		let p1Maxhp, p2Maxhp;
+		let playerNumber;
+
+		var currentStance = '';
+		const atkBg = 'background-image: linear-gradient(#E7F2C3, #CAF5CB);';
+		const defBg = 'background-image: linear-gradient(#E7F2C3, #EC2C2A);';
 
 		let player1 = $_GET('player1'),
 			player2 = $_GET('player2');
@@ -39,108 +44,180 @@
 			]
 		}
 
-		$(document).ready(function () {
-			let hit = document.getElementById("sound_hit");
+		$(document).ready(async function () {
+			let hit = document.getElementById('sound_hit');
 			getUserInfo();
 			getId();
-			let turn = 0;
 
-			socket.on("start", serverState => {
-				console.log(serverState);
-				state = serverState.state;
+			let serverState = await socket.on('start');
+			checkStart(serverState);
 
-				if (id == serverState.challenger) {
-					turn = 0;
-					setTextHp(state, 1)
-					console.log("player1");
-
-				} else if (id == serverState.reciever) {
-					turn = 1;
-					setTextHp(state, 2)
-					console.log("player2");
-				}
-				if (serverState.atkTurn == turn) {
-					console.log("ATK");
-					$('#head').html("Attack");
-					$('#btn3').attr('style', 'display: none;');
-					$('#btn4').attr('style', 'display: none;');
-					$('#btn1').attr('style', 'display: inherit;');
-					$('#btn2').attr('style', 'display: inherit;');
-				} else {
-					console.log("DEF");
-					$('#head').html("Defend");
-					$('#btn1').attr('style', 'display: none;');
-					$('#btn2').attr('style', 'display: none;');
-					$('#btn3').attr('style', 'display: inherit;');
-					$('#btn4').attr('style', 'display: inherit;');
-				}
-				$('#btn1').click(function () {
-					console.log("atk");
-					socket.emit("action", turn, "atk", id);
-					console.log(state[1].hp);
-				});
-				$('#btn2').click(function () {
-					console.log("matk");
-					socket.emit("action", turn, "matk", id);
-					console.log(state[1].hp);
-				});
-				$('#btn3').click(function () {
-					console.log("def");
-					socket.emit("action", turn, "def", id);
-					console.log(state[1].hp);
-				});
-				$('#btn4').click(function () {
-					console.log("mdef");
-					socket.emit("action", turn, "mdef", id);
-					console.log(state[1].hp);
-				});
-
+			$('#btn1').click(function () {
+				console.log("atk");
+				socket.emit("action", turn, "atk", id);
+			});
+			$('#btn2').click(function () {
+				console.log("matk");
+				socket.emit("action", turn, "matk", id);
+			});
+			$('#btn3').click(function () {
+				console.log("def");
+				socket.emit("action", turn, "def", id);
+			});
+			$('#btn4').click(function () {
+				console.log("mdef");
+				socket.emit("action", turn, "mdef", id);
 			});
 
-			socket.on("updateState", serverState => {
-				state = serverState.state;
-				console.log(state);
-				if (id == serverState.challenger) {
-					setTextHp(state, 1);
-					// animateOnHit(".img20");
-					// animateOnHit(".img21");
-					// animateOnHit(".img22");
-					// animateOnHit(".img23");
-
-				} else if (id == serverState.reciever) {
-					setTextHp(state, 2);
-				}
-				if (serverState.atkTurn != turn) {
-					console.log("DEF");
-					$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #CAF5CB);');
-					$('#head').html("Defend");
-					$('#btn3').attr('style', 'display: inherit;');
-					$('#btn4').attr('style', 'display: inherit;');
-					$('#btn1').attr('style', 'display: none;');
-					$('#btn2').attr('style', 'display: none;');
-				} else {
-					console.log("ATK");
-					$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #EC2C2A);');
-					$('#head').html("Attack");
-					$('#btn1').attr('style', 'display: inherit;');
-					$('#btn2').attr('style', 'display: inherit;');
-					$('#btn3').attr('style', 'display: none;');
-					$('#btn4').attr('style', 'display: none;');
-				}
-			});
-
-			socket.on("end", serverState => {
-				console.log(serverState);
-
-				if (serverState.winner == id) {
-					alert("You Win");
-					window.location = "/profile.html";
-				} else {
-					alert("You Lose");
-					window.location = "/profile.html";
-				}
-			});
 		});
+
+		function endGame(serverState) {
+			if (serverState.winner == id) {
+				alert("You Win");
+				window.location = "/profile.html";
+			} else {
+				alert("You Lose");
+				window.location = "/profile.html";
+			}
+		}
+
+		function checkStart(serverState) {
+			if (serverState.challenger == id || serverState.reciever == id)
+				startGame(serverState);
+			// DO NOTHING IF NOT MATCH ID
+		}
+
+		function startGame(serverState) {
+			updateHP(serverState);
+			updateTurn(serverState);
+			socket.on("updateState", updateState);
+			socket.on("end", endGame);
+		}
+
+		function updateHP(serverState) {
+			if (serverState.challenger == id) {
+				playerNumber = 0;
+			} else if (serverState.reciever == id) {
+				playerNumber = 1;
+			}
+			setTextHp(serverState.state, playerNumber + 1);
+		}
+
+		function updateState(serverState) {
+			let state = severState.state;
+
+			if (serverState.atkTurn == playerNumber) updateTurn('Attack');
+			else updateTurn('Defense');
+
+			updateHP(serverState);
+		}
+
+		function updateTurn(turn) {
+			if (turn == 'Attack') {
+				$('#btn1').attr('style', 'display: inherit;');		// ATK
+				$('#btn2').attr('style', 'display: inherit;');		// MATK
+				$('#btn3').attr('style', 'display: none;');			// DEF
+				$('#btn4').attr('style', 'display: none;');			// MDEF
+			} else {
+				$('#btn1').attr('style', 'display: none;');			// ATK
+				$('#btn2').attr('style', 'display: none;');			// MATK
+				$('#btn3').attr('style', 'display: inherit;');		// DEF
+				$('#btn4').attr('style', 'display: inherit;');		// MDEF
+			}
+		}
+
+		// $(document).ready(function () {
+		// 	let hit = document.getElementById("sound_hit");
+		// 	getUserInfo();
+		// 	getId();
+		// 	let turn = 0;
+
+		// 	socket.on("start", serverState => {
+		// 		console.log(serverState);
+		// 		state = serverState.state;
+
+		// 		if (id == serverState.challenger) {
+		// 			turn = 0;
+		// 			setTextHp(state, 1)
+		// 			console.log("player1");
+
+		// 		} else if (id == serverState.reciever) {
+		// 			turn = 1;
+		// 			setTextHp(state, 2)
+		// 			console.log("player2");
+		// 		}
+		// 		if (serverState.atkTurn == turn) {
+		// 			console.log("ATK");
+		// 			$('#head').html("Attack");
+		// 			$('#btn3').attr('style', 'display: none;');
+		// 			$('#btn4').attr('style', 'display: none;');
+		// 			$('#btn1').attr('style', 'display: inherit;');
+		// 			$('#btn2').attr('style', 'display: inherit;');
+		// 		} else {
+		// 			console.log("DEF");
+		// 			$('#head').html("Defend");
+		// 			$('#btn1').attr('style', 'display: none;');
+		// 			$('#btn2').attr('style', 'display: none;');
+		// 			$('#btn3').attr('style', 'display: inherit;');
+		// 			$('#btn4').attr('style', 'display: inherit;');
+		// 		}
+		// 		$('#btn1').click(function () {
+		// 			console.log("atk");
+		// 			socket.emit("action", turn, "atk", id);
+		// 			console.log(state[1].hp);
+		// 		});
+		// 		$('#btn2').click(function () {
+		// 			console.log("matk");
+		// 			socket.emit("action", turn, "matk", id);
+		// 			console.log(state[1].hp);
+		// 		});
+		// 		$('#btn3').click(function () {
+		// 			console.log("def");
+		// 			socket.emit("action", turn, "def", id);
+		// 			console.log(state[1].hp);
+		// 		});
+		// 		$('#btn4').click(function () {
+		// 			console.log("mdef");
+		// 			socket.emit("action", turn, "mdef", id);
+		// 			console.log(state[1].hp);
+		// 		});
+
+		// 	});
+
+		// 	socket.on("updateState", serverState => {
+		// 		state = serverState.state;
+		// 		console.log(state);
+		// 		if (id == serverState.challenger) {
+		// 			setTextHp(state, 1);
+		// 			// animateOnHit(".img20");
+		// 			// animateOnHit(".img21");
+		// 			// animateOnHit(".img22");
+		// 			// animateOnHit(".img23");
+
+		// 		} else if (id == serverState.reciever) {
+		// 			setTextHp(state, 2);
+		// 		}
+		// 		if (serverState.atkTurn != turn) {
+		// 			console.log("DEF");
+		// 			$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #CAF5CB);');
+		// 			$('#head').html("Defend");
+		// 			$('#btn3').attr('style', 'display: inherit;');
+		// 			$('#btn4').attr('style', 'display: inherit;');
+		// 			$('#btn1').attr('style', 'display: none;');
+		// 			$('#btn2').attr('style', 'display: none;');
+		// 		} else {
+		// 			console.log("ATK");
+		// 			$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #EC2C2A);');
+		// 			$('#head').html("Attack");
+		// 			$('#btn1').attr('style', 'display: inherit;');
+		// 			$('#btn2').attr('style', 'display: inherit;');
+		// 			$('#btn3').attr('style', 'display: none;');
+		// 			$('#btn4').attr('style', 'display: none;');
+		// 		}
+		// 	});
+
+
+		// });
 
 		function getId() {
 			get("getUserInfo", res => {
@@ -177,62 +254,62 @@
 
 		console.log(player1 + player2);
 
-		function getUserInfo() {
-			try {
-				get("getUserInfo", res => {
-					if (res.ok) {
-						res.json()
-							.then(json => {
-								let user = json;
-								state.player[0].hp += user.head.hp + user.body.hp + user.weapon.hp;
-								state.player[0].atk += user.head.attack + user.body.attack + user.weapon.attack;
-								state.player[0].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-								state.player[0].def += user.head.defend + user.body.defend + user.weapon.defend;
-								state.player[0].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
-								p1Maxhp = state.player[0].hp;
-								console.log("p1Maxhp = " + p1Maxhp);
-								console.log(json);
+		// function getUserInfo() {
+		// 	try {
+		// 		get("getUserInfo", res => {
+		// 			if (res.ok) {
+		// 				res.json()
+		// 					.then(json => {
+		// 						let user = json;
+		// 						state.player[0].hp += user.head.hp + user.body.hp + user.weapon.hp;
+		// 						state.player[0].atk += user.head.attack + user.body.attack + user.weapon.attack;
+		// 						state.player[0].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
+		// 						state.player[0].def += user.head.defend + user.body.defend + user.weapon.defend;
+		// 						state.player[0].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+		// 						p1Maxhp = state.player[0].hp;
+		// 						console.log("p1Maxhp = " + p1Maxhp);
+		// 						console.log(json);
 
-								setImg(user, 1);
-								setText(user, 1);
+		// 						setImg(user, 1);
+		// 						setText(user, 1);
 
-								return get("getUserInfo?id=" + player2, res => {
-									if (res.ok) {
-										res.json()
-											.then(json => {
-												let user = json;
-												console.log(json);
-												//player ฝั่งซ้าย
-												state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
-												state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
-												state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
-												state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
-												state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
+		// 						return get("getUserInfo?id=" + player2, res => {
+		// 							if (res.ok) {
+		// 								res.json()
+		// 									.then(json => {
+		// 										let user = json;
+		// 										console.log(json);
+		// 										//player ฝั่งซ้าย
+		// 										state.player[1].hp += user.head.hp + user.body.hp + user.weapon.hp;
+		// 										state.player[1].atk += user.head.attack + user.body.attack + user.weapon.attack;
+		// 										state.player[1].matk += user.head.mattack + user.body.mattack + user.weapon.mattack;
+		// 										state.player[1].def += user.head.defend + user.body.defend + user.weapon.defend;
+		// 										state.player[1].mdef += user.head.mdefend + user.body.mdefend + user.weapon.mdefend;
 
-												p2Maxhp = state.player[1].hp;
-												console.log("p2Maxhp = " + p2Maxhp);
-												setImg(user, 2);
-												setText(user, 2);
+		// 										p2Maxhp = state.player[1].hp;
+		// 										console.log("p2Maxhp = " + p2Maxhp);
+		// 										setImg(user, 2);
+		// 										setText(user, 2);
 
-											}).catch(err => {
-												console.log(err);
-											});
-									}
-								});
-							}).then(result => {
-								//แก้ state เป็น id
-								socket.emit("start", player1);
-							}).catch(err => {
-								console.log(err);
-							});
-					}
-				});
+		// 									}).catch(err => {
+		// 										console.log(err);
+		// 									});
+		// 							}
+		// 						});
+		// 					}).then(result => {
+		// 						//แก้ state เป็น id
+		// 						socket.emit("start", player1);
+		// 					}).catch(err => {
+		// 						console.log(err);
+		// 					});
+		// 			}
+		// 		});
 
-			}
-			catch (err) {
-				alert(err);
-			}
-		}
+		// 	}
+		// 	catch (err) {
+		// 		alert(err);
+		// 	}
+		// }
 
 		function setImg(user, p) {
 			let head = user.head.name;
@@ -294,7 +371,6 @@
 				$("#hpm2").attr('style', 'width: ' + p2hp + '%');
 			}
 		}
-		// socket.emit("chat message", "AHHHHH");
 	</script>
 	<style>
 		html {
@@ -365,7 +441,7 @@
 			background-size: 100%;
 		}
 
-		/*.btn:hover {
+		/*.btn:hover {  
 		}*/
 
 /* IMG CHARACTER */
