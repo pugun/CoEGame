@@ -104,7 +104,7 @@
 		});
 
 		function recieveChallenge() {
-			socket.on("recieveChallenge", function (opponent, self) {
+			socket.on("recieveChallenge", function (opponent, self, challengerName) {
 				console.log("state available is " + available);
 				if (self == userInfo.id) {
 					if (available) {
@@ -122,7 +122,8 @@
 
 						$('#waitModal').css('display', 'none');
 						$('#challengeModal').css('display', 'block');
-						$('.modalbg').css('display', 'block');
+						$('.modalbg').css('display', 'block');	
+						$('#opponentName').text(challengerName + " wants to chanllenge you");
 
 						$('#acptBtn').unbind('click');
 						$('#rejBtn').unbind('click');
@@ -263,7 +264,7 @@
 			<button id="cancelBtn">Cancel</button>
 		</div>
 		<div id="challengeModal" class="modal-content">
-			<p></p>
+			<p id="opponentName"></p>
 			<button id="acptBtn">Accept</button>
 			<button id="rejBtn">Reject</button>
 		</div>

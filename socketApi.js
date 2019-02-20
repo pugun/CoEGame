@@ -6,6 +6,7 @@ var imdb = new loki('loki.json');
 var gameRoom = imdb.addCollection("gameRoom");
 var db = require('./models');
 var sequelize = require('sequelize');
+let challengerName;
 const util = require("util");
 
 
@@ -22,7 +23,19 @@ io.on("connection", function (socket) {
 	});
 
 	socket.on("sendChallenge", function (challenger, reciever) {
-		io.emit("recieveChallenge", challenger, reciever);
+		//get challenger's name
+		(async () => {
+			try {
+				let userChallenger = await db.User.findOne({
+					where: { id: challenger },
+					raw: true,
+				});
+				challengerName = userChallenger.username;
+			} catch (err) {
+				console.log(err);
+			}
+		})();
+		io.emit("recieveChallenge", challenger, reciever, challengerName);
 
 
 	});
