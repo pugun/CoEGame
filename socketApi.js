@@ -23,7 +23,7 @@ io.on("connection", function (socket) {
 
 	socket.on("sendChallenge", function (challenger, reciever) {
 		io.emit("recieveChallenge", challenger, reciever);
-		
+
 
 	});
 
@@ -76,7 +76,7 @@ io.on("connection", function (socket) {
 						userChallengerPower.defend += userChallengerEquipment[i].defend;
 						userChallengerPower.mdefend += userChallengerEquipment[i].mdefend;
 					}
-	
+
 					for (let i = 0; i < userRecieverEquipment.length; i++) {
 						userRecieverPower.hp += userRecieverEquipment[i].hp;
 						userRecieverPower.attack += userRecieverEquipment[i].attack;
@@ -84,46 +84,45 @@ io.on("connection", function (socket) {
 						userRecieverPower.defend += userRecieverEquipment[i].defend;
 						userRecieverPower.mdefend += userRecieverEquipment[i].mdefend;
 					}
-				
+
 					console.log("before create room");
 					// if (gameRoom.find({ challenger: { '$in': [challenger, reciever] } }) == null) {
-						console.log("create room");
-						gameRoom.insert({
-							challenger: Number(challenger),
-							reciever: Number(reciever),
-							atkTurn: Math.floor(Math.random() * 2),
-							state: [
-								{
-									hp: 15 + userChallengerPower.hp,
-									atk: 3 + userChallengerPower.attack,
-									matk: 2 + userChallengerPower.mattack,
-									def: 1 + userChallengerPower.defend,
-									mdef: 1 + userChallengerPower.mdefend,
-									action: "Waiting"
-								},
-								{
-									hp: 15 + userRecieverPower.hp,
-									atk: 3 + userRecieverPower.attack,
-									matk: 2 + userRecieverPower.mattack,
-									def: 1 + userRecieverPower.defend,
-									mdef: 1 + userRecieverPower.mdefend,
-									action: "Waiting"
-								}
-							]
-						});
-						io.emit('roomCreated', challenger, reciever);
-						console.log('roomCreted emited!!');
+					console.log("create room");
+					gameRoom.insert({
+						challenger: Number(challenger),
+						reciever: Number(reciever),
+						atkTurn: Math.floor(Math.random() * 2),
+						state: [
+							{
+								hp: 15 + userChallengerPower.hp,
+								atk: 3 + userChallengerPower.attack,
+								matk: 2 + userChallengerPower.mattack,
+								def: 1 + userChallengerPower.defend,
+								mdef: 1 + userChallengerPower.mdefend,
+								action: "Waiting"
+							},
+							{
+								hp: 15 + userRecieverPower.hp,
+								atk: 3 + userRecieverPower.attack,
+								matk: 2 + userRecieverPower.mattack,
+								def: 1 + userRecieverPower.defend,
+								mdef: 1 + userRecieverPower.mdefend,
+								action: "Waiting"
+							}
+						]
+					});
+					io.emit('roomCreated', challenger, reciever);
+					console.log('roomCreted emited!!');
 					// }
 				}
 				catch (err) {
 					console.log(err);
 				}
 			})();
-			//} else if (message == 'reject') {
+		} else if (message == 'reject') {
 
-			//}
-			io.emit("answerChallenge", challenger, reciever, message)
 		}
+		io.emit("answerChallenge", challenger, reciever, message);
 	});
 
 	socket.on("cancelChallenge", function (challenger, reciever) {
@@ -131,7 +130,7 @@ io.on("connection", function (socket) {
 		io.emit("cancelChallenge", challenger, reciever);
 	});
 
-	socket.on("start", function (userId) {
+	socket.on("findRoom", function (userId) {
 		console.log("USER ID " + userId);
 		let state = gameRoom.findOne({ challenger: Number(userId) });
 		console.log("State Gameroom");
@@ -147,7 +146,12 @@ io.on("connection", function (socket) {
 		console.log(playerNum);
 		console.log(state);
 		console.log(action);
-		state.state[playerNum].action = action;
+		try {
+			state.state[playerNum].action = action;
+		} catch (err) {
+
+		}
+		gameRoom.update(state);
 		if (state.state[0].action !== "Waiting" && state.state[1].action !== "Waiting") {
 			let atkPlayer = state.atkTurn;
 			let defPlayer = state.atkTurn === 0 ? 1 : 0;
@@ -170,25 +174,31 @@ io.on("connection", function (socket) {
 			state.state[defPlayer].hp -= damage;
 
 			if (state.state[defPlayer].hp <= 0) {
+				ลอค(state.state);
 				io.emit("end", {
-					winner: state.player[atkPlayer].id,
-					loser: state.player[defPlayer].id
+					winner: state.state[atkPlayer].id,
+					loser: state.state[defPlayer].id
 				});
 			}
 			else {
 				state.state[0].action = "Waiting";
 				state.state[1].action = "Waiting";
 				state.atkTurn = state.atkTurn === 1 ? 0 : 1;
-				io.emit("updateState", {
-					state: state
-				});
+				io.emit("updateState", state);
 			}
 		}
 		else {
-			io.emit("updateState", {
-				state: state
-			});
+			// io.emit("updateState", {
+			// 	state: state
+			// });
+			// donothing
 		}
+		console.log("state after updateState");
+		console.log(state);
+	});
+
+	socket.on("unavailableHandler", function(recv, send) {
+		io.emit("answerChallenge", send, recv, "unavailable");
 	});
 
 	socket.on("finishAnimation", function (id) {
@@ -210,5 +220,9 @@ socketApi.sendNotification = function () {
 let prepareFight = function () {
 
 };
+
+function ลอค(any) {
+	console.log(any);
+}
 
 module.exports = socketApi;

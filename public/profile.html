@@ -77,9 +77,10 @@
 		}
 
 		function recieveChallenge() {
-			if (available)
-				socket.on("recieveChallenge", (opponent, self) => {
-					console.log('get recieveChallenge');
+			socket.on("recieveChallenge", function (opponent, self) {
+				if (available) {
+					available = false;
+					console.log('get recieve challenge');
 					if (self == userInfo.id) {
 						console.log('wait for receive challenge')
 
@@ -97,14 +98,34 @@
 
 						$('#acptBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "accept");
-							window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+							socket.on('roomCreated', function (challenger, receiver) {
+								if (challenger == userInfo.id || receiver == userInfo.id)
+									window.location = "/fight.html?player1=" + self + "&player2=" + opponent + "&challenger=" + challenger;
+							});
 						});
 						$('#rejBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "reject");
+							fightCanceled();
 						});
 					}
-				});
+				} else {
+					socket.emit("unaviableHandler", self);
+				}
+			});
 		}
+		
+		function fightCanceled() {
+			recieveChallenge();
+			available = true;
+			noFuckinModal();
+		}
+
+		function noFuckinModal() {
+			$('#waitModal').css('display', 'none');
+			$('#challengeModal').css('display', 'none');
+			$('.modalbg').css('display', 'none');
+		}
+
 	</script>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>

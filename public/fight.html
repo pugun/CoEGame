@@ -14,14 +14,15 @@
 		let p1Maxhp, p2Maxhp;
 		let playerNumber;
 
-		var currentStance = '';
-		const atkBg = 'background-image: linear-gradient(#E7F2C3, #CAF5CB);';
-		const defBg = 'background-image: linear-gradient(#E7F2C3, #EC2C2A);';
+		const defBg = 'background-image: linear-gradient(#E7F2C3, #CAF5CB);';
+		const atkBg = 'background-image: linear-gradient(#E7F2C3, #EC2C2A);';
 
 		let player1 = $_GET('player1'),
-			player2 = $_GET('player2');
+			player2 = $_GET('player2'),
+			challenger = $_GET('challenger');
 
-		let state = {
+		/*
+			let state = {
 			player: [
 				{
 					id: player1,
@@ -43,36 +44,67 @@
 				}
 			]
 		}
+		*/
 
 		$(document).ready(function () {
 			let hit = document.getElementById('sound_hit');
-			getId();
+			get("getUserInfo", res => {
+				if (res.ok) {
+					res.json()
+						.then(json => {
+							let user = json;
+							console.log(json);
+							id = json.id;
 
-			socket.emit('start', id);
+						}).then(result => {
+							console.log("player id: " + id);
+							socket.emit("findRoom", challenger);
 
-			socket.on('start', function(serverState) {
-				console.log(serverState);
-				checkStart(serverState);
+							socket.on("start", function (serverState) {
+								console.log("start socket recieved");
+								console.log(serverState);
+								checkStart(serverState);
+							});
+
+						}).catch(err => {
+							console.log(err);
+						});
+				}
 			});
 
 			$('#btn1').click(function () {
-				console.log("atk");
-				socket.emit("action", turn, "atk", id);
+				console.log("player number: " + playerNumber + " , atk");
+
+				socket.emit("action", playerNumber, "atk", challenger);
 			});
 			$('#btn2').click(function () {
-				console.log("matk");
-				socket.emit("action", turn, "matk", id);
+				console.log("player number: " + playerNumber + " , matk");
+				socket.emit("action", playerNumber, "matk", challenger);
 			});
 			$('#btn3').click(function () {
-				console.log("def");
-				socket.emit("action", turn, "def", id);
+				console.log("player number: " + playerNumber + " , def");
+				socket.emit("action", playerNumber, "def", challenger);
 			});
 			$('#btn4').click(function () {
-				console.log("mdef");
-				socket.emit("action", turn, "mdef", id);
+				console.log("player number: " + playerNumber + " , mdef");
+				socket.emit("action", playerNumber, "mdef", challenger);
 			});
 
 		});
+
+		function checkStart(serverState) {
+			try {
+				console.log("in check start before if");
+				console.log(serverState);
+				console.log("id: " + id + ", challenger: " + serverState.challenger + ", reciever: " + serverState.reciever);
+				if (serverState.challenger == id || serverState.reciever == id)
+					console.log("in check start");
+				startGame(serverState);
+			} catch (err) {
+				// do nothing
+			}
+			// DO NOTHING IF NOT MATCH ID
+		}
 
 		function endGame(serverState) {
 			if (serverState.winner == id) {
@@ -84,18 +116,17 @@
 			}
 		}
 
-		function checkStart(serverState) {
-			if (serverState.challenger == id || serverState.reciever == id)
-				startGame(serverState);
-			// DO NOTHING IF NOT MATCH ID
-		}
 
 		function startGame(serverState) {
+			console.log("in startGame");
 			console.log(serverState);
 			getUserInfo(serverState);
-			updateHP(serverState);
-			updateTurn(serverState);
-			socket.on("updateState", updateState);
+			socket.on("updateState", function (serverState) {
+				let state = serverState.state;
+				if (serverState.atkTurn == playerNumber) updateTurn('Attack');
+				else updateTurn('Defense');
+				updateHP(serverState);
+			});
 			socket.on("end", endGame);
 		}
 
@@ -105,124 +136,42 @@
 			} else if (serverState.reciever == id) {
 				playerNumber = 1;
 			}
+			console.log(serverState.state);
 			setTextHp(serverState.state, playerNumber + 1);
 		}
 
 		function updateState(serverState) {
-			let state = severState.state;
-
-			if (serverState.atkTurn == playerNumber) updateTurn('Attack');
-			else updateTurn('Defense');
-
+			console.log(serverState);
+			if (serverState.atkTurn == playerNumber) {
+				console.log("in update state : ATK");
+				updateTurn('Attack');
+			} else {
+				console.log("in update state : DEF");
+				updateTurn('Defense');
+			}
 			updateHP(serverState);
 		}
 
 		function updateTurn(turn) {
 			if (turn == 'Attack') {
+				console.log("in update turn : ATK");
 				$('#btn1').attr('style', 'display: inherit;');		// ATK
 				$('#btn2').attr('style', 'display: inherit;');		// MATK
 				$('#btn3').attr('style', 'display: none;');			// DEF
 				$('#btn4').attr('style', 'display: none;');			// MDEF
+				$('html').attr('style', atkBg);
+				$('#head').html("Attack");
+
 			} else {
+				console.log("in update turn : DEF");
 				$('#btn1').attr('style', 'display: none;');			// ATK
 				$('#btn2').attr('style', 'display: none;');			// MATK
 				$('#btn3').attr('style', 'display: inherit;');		// DEF
 				$('#btn4').attr('style', 'display: inherit;');		// MDEF
+				$('html').attr('style', defBg);
+				$('#head').html("Defend");
 			}
 		}
-
-		// $(document).ready(function () {
-		// 	let hit = document.getElementById("sound_hit");
-		// 	getUserInfo();
-		// 	getId();
-		// 	let turn = 0;
-
-		// 	socket.on("start", serverState => {
-		// 		console.log(serverState);
-		// 		state = serverState.state;
-
-		// 		if (id == serverState.challenger) {
-		// 			turn = 0;
-		// 			setTextHp(state, 1)
-		// 			console.log("player1");
-
-		// 		} else if (id == serverState.reciever) {
-		// 			turn = 1;
-		// 			setTextHp(state, 2)
-		// 			console.log("player2");
-		// 		}
-		// 		if (serverState.atkTurn == turn) {
-		// 			console.log("ATK");
-		// 			$('#head').html("Attack");
-		// 			$('#btn3').attr('style', 'display: none;');
-		// 			$('#btn4').attr('style', 'display: none;');
-		// 			$('#btn1').attr('style', 'display: inherit;');
-		// 			$('#btn2').attr('style', 'display: inherit;');
-		// 		} else {
-		// 			console.log("DEF");
-		// 			$('#head').html("Defend");
-		// 			$('#btn1').attr('style', 'display: none;');
-		// 			$('#btn2').attr('style', 'display: none;');
-		// 			$('#btn3').attr('style', 'display: inherit;');
-		// 			$('#btn4').attr('style', 'display: inherit;');
-		// 		}
-		// 		$('#btn1').click(function () {
-		// 			console.log("atk");
-		// 			socket.emit("action", turn, "atk", id);
-		// 			console.log(state[1].hp);
-		// 		});
-		// 		$('#btn2').click(function () {
-		// 			console.log("matk");
-		// 			socket.emit("action", turn, "matk", id);
-		// 			console.log(state[1].hp);
-		// 		});
-		// 		$('#btn3').click(function () {
-		// 			console.log("def");
-		// 			socket.emit("action", turn, "def", id);
-		// 			console.log(state[1].hp);
-		// 		});
-		// 		$('#btn4').click(function () {
-		// 			console.log("mdef");
-		// 			socket.emit("action", turn, "mdef", id);
-		// 			console.log(state[1].hp);
-		// 		});
-
-		// 	});
-
-		// 	socket.on("updateState", serverState => {
-		// 		state = serverState.state;
-		// 		console.log(state);
-		// 		if (id == serverState.challenger) {
-		// 			setTextHp(state, 1);
-		// 			// animateOnHit(".img20");
-		// 			// animateOnHit(".img21");
-		// 			// animateOnHit(".img22");
-		// 			// animateOnHit(".img23");
-
-		// 		} else if (id == serverState.reciever) {
-		// 			setTextHp(state, 2);
-		// 		}
-		// 		if (serverState.atkTurn != turn) {
-		// 			console.log("DEF");
-		// 			$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #CAF5CB);');
-		// 			$('#head').html("Defend");
-		// 			$('#btn3').attr('style', 'display: inherit;');
-		// 			$('#btn4').attr('style', 'display: inherit;');
-		// 			$('#btn1').attr('style', 'display: none;');
-		// 			$('#btn2').attr('style', 'display: none;');
-		// 		} else {
-		// 			console.log("ATK");
-		// 			$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #EC2C2A);');
-		// 			$('#head').html("Attack");
-		// 			$('#btn1').attr('style', 'display: inherit;');
-		// 			$('#btn2').attr('style', 'display: inherit;');
-		// 			$('#btn3').attr('style', 'display: none;');
-		// 			$('#btn4').attr('style', 'display: none;');
-		// 		}
-		// 	});
-
-
-		// });
 
 		function getId() {
 			get("getUserInfo", res => {
@@ -231,7 +180,7 @@
 						.then(json => {
 							let user = json;
 							console.log(json);
-							id = user.id;
+							id = json.id;
 
 						}).then(result => {
 						}).catch(err => {
@@ -262,8 +211,8 @@
 		function getUserInfo(serverState) {
 			try {
 				console.log(serverState);
-				// p1Maxhp = (playerNumber == 0 ? serverState.state[0].hp : serverState.state[1].hp);
-				// p2Maxhp = (playerNumber == 0 ? serverState.state[1].hp : serverState.state[0].hp);
+				p1Maxhp = (playerNumber == 0 ? serverState.state[0].hp : serverState.state[1].hp);
+				p2Maxhp = (playerNumber == 0 ? serverState.state[1].hp : serverState.state[0].hp);
 
 				get("getUserInfo", res => {
 					if (res.ok) {
@@ -292,6 +241,9 @@
 									}
 								});
 							}).then(result => {
+								updateHP(serverState);
+								updateTurn(serverState);
+								updateState(serverState);
 								// socket.emit("start", player1);
 							}).catch(err => {
 								console.log(err);
@@ -338,15 +290,23 @@
 		}
 
 		function setTextHp(state, p) {
-			console.log(state);
+
+			try {
+				console.log(state.state);
+			} catch(err) {
+				console.log("Catch Error");
+			}
 			let p1hp, p2hp;
 
 			if (p == 1) {
-				p1hp = (state[0].hp / p1Maxhp) * 100;
-				p2hp = (state[1].hp / p2Maxhp) * 100;
+				p1hp = (state[0].hp / p1Maxhp) * 100;   // ยังไม่ได้ทำเลย
+				p2hp = (state[1].hp / p2Maxhp) * 100;	// on hit animation เป็นยังไงบ้าง .... 
 				$("#hp1").html(state[0].hp);
 				$("#hp2").html(state[1].hp);
-
+				console.log("state[0].hp: " + state[0].hp);
+				console.log("state[1].hp: " + state[1].hp);
+				console.log("p1Maxhp: " + p1Maxhp);
+				console.log("p2Maxhp: " + p2Maxhp);
 				console.log("hpm1: " + p1hp);
 				console.log("hpm2: " + p2hp);
 				console.log(state);
@@ -359,6 +319,10 @@
 				$("#hp1").html(state[1].hp);
 				$("#hp2").html(state[0].hp);
 
+				console.log("state[0].hp: " + state[0].hp);
+				console.log("state[1].hp: " + state[1].hp);
+				console.log("p1Maxhp: " + p1Maxhp);
+				console.log("p2Maxhp: " + p2Maxhp);
 				console.log("hpm1: " + p1hp);
 				console.log("hpm2: " + p2hp);
 				console.log("State" + state);
@@ -774,3 +738,97 @@
 </body>
 
 </html>
+<script>
+
+	// $(document).ready(function () {
+	// 	let hit = document.getElementById("sound_hit");
+	// 	getUserInfo();
+	// 	getId();
+	// 	let turn = 0;
+
+	// 	socket.on("start", serverState => {
+	// 		console.log(serverState);
+	// 		state = serverState.state;
+
+	// 		if (id == serverState.challenger) {
+	// 			turn = 0;
+	// 			setTextHp(state, 1)
+	// 			console.log("player1");
+
+	// 		} else if (id == serverState.reciever) {
+	// 			turn = 1;
+	// 			setTextHp(state, 2)
+	// 			console.log("player2");
+	// 		}
+	// 		if (serverState.atkTurn == turn) {
+	// 			console.log("ATK");
+	// 			$('#head').html("Attack");
+	// 			$('#btn3').attr('style', 'display: none;');
+	// 			$('#btn4').attr('style', 'display: none;');
+	// 			$('#btn1').attr('style', 'display: inherit;');
+	// 			$('#btn2').attr('style', 'display: inherit;');
+	// 		} else {
+	// 			console.log("DEF");
+	// 			$('#head').html("Defend");
+	// 			$('#btn1').attr('style', 'display: none;');
+	// 			$('#btn2').attr('style', 'display: none;');
+	// 			$('#btn3').attr('style', 'display: inherit;');
+	// 			$('#btn4').attr('style', 'display: inherit;');
+	// 		}
+	// 		$('#btn1').click(function () {
+	// 			console.log("atk");
+	// 			socket.emit("action", turn, "atk", id);
+	// 			console.log(state[1].hp);
+	// 		});
+	// 		$('#btn2').click(function () {
+	// 			console.log("matk");
+	// 			socket.emit("action", turn, "matk", id);
+	// 			console.log(state[1].hp);
+	// 		});
+	// 		$('#btn3').click(function () {
+	// 			console.log("def");
+	// 			socket.emit("action", turn, "def", id);
+	// 			console.log(state[1].hp);
+	// 		});
+	// 		$('#btn4').click(function () {
+	// 			console.log("mdef");
+	// 			socket.emit("action", turn, "mdef", id);
+	// 			console.log(state[1].hp);
+	// 		});
+
+	// 	});
+
+	// 	socket.on("updateState", serverState => {
+	// 		state = serverState.state;
+	// 		console.log(state);
+	// 		if (id == serverState.challenger) {
+	// 			setTextHp(state, 1);
+	// 			// animateOnHit(".img20");
+	// 			// animateOnHit(".img21");
+	// 			// animateOnHit(".img22");
+	// 			// animateOnHit(".img23");
+
+	// 		} else if (id == serverState.reciever) {
+	// 			setTextHp(state, 2);
+	// 		}
+	// 		if (serverState.atkTurn != turn) {
+	// 			console.log("DEF");
+	// 			$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #CAF5CB);');
+	// 			$('#head').html("Defend");
+	// 			$('#btn3').attr('style', 'display: inherit;');
+	// 			$('#btn4').attr('style', 'display: inherit;');
+	// 			$('#btn1').attr('style', 'display: none;');
+	// 			$('#btn2').attr('style', 'display: none;');
+	// 		} else {
+	// 			console.log("ATK");
+	// 			$('html').attr('style', 'background-image: linear-gradient(#E7F2C3, #EC2C2A);');
+	// 			$('#head').html("Attack");
+	// 			$('#btn1').attr('style', 'display: inherit;');
+	// 			$('#btn2').attr('style', 'display: inherit;');
+	// 			$('#btn3').attr('style', 'display: none;');
+	// 			$('#btn4').attr('style', 'display: none;');
+	// 		}
+	// 	});
+
+
+	// });</script>

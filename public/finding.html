@@ -44,14 +44,28 @@
 									table.appendChild(tr);
 								}
 								$(".btn").click(function () {
+
 									let self = userInfo.id;
 									let opponent = this.id;
-									socket.emit("sendChallenge", self, opponent);
 
+									socket.emit("sendChallenge", self, opponent);
+									available = false;
+
+									// สร้าง modal ของ Waiting...
 									$('#challengeModal').css('display', 'none');
 									$('#waitModal').css('display', 'block');
 									$('.modalbg').css('display', 'block');
-									//เปิดไปหน้า fight
+
+									$('#cancelBtn').click(function () {
+										// Reset modal
+										$('#challengeModal').css('display', 'none');
+										$('#waitModal').css('display', 'none');
+										$('.modalbg').css('display', 'none');
+										socket.emit('cancelChallenge', self, opponent);
+										fightCanceled();
+										console.log("Canceled by Cancel Button");
+									});
+
 									console.log('click btn');
 									socket.on("answerChallenge", function (self, opponent, message) {
 										console.log(self + opponent + message);
@@ -60,10 +74,15 @@
 												console.log('got accept');
 												socket.on("roomCreated", function (challenger, reciever) {
 													if (challenger == userInfo.id || reciever == userInfo.id)
-														window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+														window.location = "/fight.html?player1=" + self + "&player2=" + opponent + "&challenger=" + challenger;
 												});
+											} else if (message == "unavailable") {
+												alert("คู่ต่อสู้ไม่ว่างน๊ะจ๊ะ♥");
+												fightCanceled();
+											} else {
+												alert("คู่ต่อสู้ปฏิเสธคำเชิญ");
+												fightCanceled();
 											}
-											else fightCanceled();
 										}
 									});
 								});
@@ -85,15 +104,20 @@
 		});
 
 		function recieveChallenge() {
-			if (available)
-				socket.on("recieveChallenge", function (opponent, self) {
-					console.log('get recieve challenge');
-					if (self == userInfo.id) {
+			socket.on("recieveChallenge", function (opponent, self) {
+				console.log("state available is " + available);
+				if (self == userInfo.id) {
+					if (available) {
+						available = false;
+						console.log('get recieve challenge');
+
 						console.log('wait for receive challenge')
 
 						socket.on("cancelChallenge", (opponentC, selfC) => {
-							if (selfC == userInfo.id || opponent == opponentC)
+							if (selfC == userInfo.id || opponent == opponentC) {
+								console.log('Canceled by press Cancel Button');
 								fightCanceled();
+							}
 						});
 
 						$('#waitModal').css('display', 'none');
@@ -107,21 +131,31 @@
 							socket.emit('answerChallenge', opponent, self, "accept");
 							socket.on('roomCreated', function (challenger, receiver) {
 								if (challenger == userInfo.id || receiver == userInfo.id)
-									window.location = "/fight.html?player1=" + self + "&player2=" + opponent;
+									window.location = "/fight.html?player1=" + self + "&player2=" + opponent + "&challenger=" + challenger;
 							});
 						});
 						$('#rejBtn').click(function () {
 							socket.emit('answerChallenge', opponent, self, "reject");
-
+							console.log('Canceled by press reject');
+							fightCanceled();
 						});
+					} else {
+						console.log('unavailable');
+						socket.emit("unavailableHandler", self, opponent);
 					}
-				});
+				}
+			});
 		}
 
 		function fightCanceled() {
-			socket.leaveAll();
-			recieveChallenge();
 			available = true;
+			noFuckinModal();
+		}
+
+		function noFuckinModal() {
+			$('#waitModal').css('display', 'none');
+			$('#challengeModal').css('display', 'none');
+			$('.modalbg').css('display', 'none');
 		}
 	</script>
 	<style>

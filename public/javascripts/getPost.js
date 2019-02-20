@@ -95,7 +95,8 @@ function getGeo() {
 		console.log("Unable to retrieve your location");
 	}
 
-	navigator.geolocation.getCurrentPosition(success, error);
+	// navigator.geolocation.getCurrentPosition(success, error);
+	navigator.geolocation.watchPosition(success, error);
 }
 
 //confirm box
