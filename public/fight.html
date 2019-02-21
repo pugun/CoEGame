@@ -13,6 +13,7 @@
 		let id;
 		let p1Maxhp, p2Maxhp;
 		let playerNumber;
+		let hit;
 
 		const defBg = 'background-image: linear-gradient(#E7F2C3, #CAF5CB);';
 		const atkBg = 'background-image: linear-gradient(#E7F2C3, #EC2C2A);';
@@ -47,7 +48,7 @@
 		*/
 
 		$(document).ready(function () {
-			let hit = document.getElementById('sound_hit');
+
 			get("getUserInfo", res => {
 				if (res.ok) {
 					res.json()
@@ -107,12 +108,15 @@
 		}
 
 		function endGame(serverState) {
+			console.log("in endgame");
+			console.log(serverState);
 			if (serverState.winner == id) {
+
 				alert("You Win");
-				window.location = "/profile.html";
+				// window.location = "/profile.html";
 			} else {
 				alert("You Lose");
-				window.location = "/profile.html";
+				// window.location = "/profile.html";
 			}
 		}
 
@@ -122,12 +126,25 @@
 			console.log(serverState);
 			getUserInfo(serverState);
 			socket.on("updateState", function (serverState) {
+				hit = document.getElementById('sound_hit');
+				hit.play();
 				let state = serverState.state;
 				if (serverState.atkTurn == playerNumber) updateTurn('Attack');
 				else updateTurn('Defense');
 				updateHP(serverState);
 			});
-			socket.on("end", endGame);
+			socket.on("end", serverState => {
+				console.log("in endgame");
+				console.log(serverState);
+				if (serverState.winner == id) {
+
+					alert("You Win");
+					window.location = "/profile.html";
+				} else {
+					alert("You Lose");
+					window.location = "/profile.html";
+				}
+			});
 		}
 
 		function updateHP(serverState) {
@@ -211,8 +228,8 @@
 		function getUserInfo(serverState) {
 			try {
 				console.log(serverState);
-				p1Maxhp = (playerNumber == 0 ? serverState.state[0].hp : serverState.state[1].hp);
-				p2Maxhp = (playerNumber == 0 ? serverState.state[1].hp : serverState.state[0].hp);
+				p1Maxhp = (id == serverState.challenger ? serverState.state[0].hp : serverState.state[1].hp);
+				p2Maxhp = (id == serverState.reciever ? serverState.state[0].hp : serverState.state[1].hp);
 
 				get("getUserInfo", res => {
 					if (res.ok) {
@@ -293,14 +310,14 @@
 
 			try {
 				console.log(state.state);
-			} catch(err) {
+			} catch (err) {
 				console.log("Catch Error");
 			}
 			let p1hp, p2hp;
 
 			if (p == 1) {
-				p1hp = (state[0].hp / p1Maxhp) * 100;   // ยังไม่ได้ทำเลย
-				p2hp = (state[1].hp / p2Maxhp) * 100;	// on hit animation เป็นยังไงบ้าง .... 
+				p1hp = (state[0].hp / p1Maxhp) * 100;
+				p2hp = (state[1].hp / p2Maxhp) * 100;
 				$("#hp1").html(state[0].hp);
 				$("#hp2").html(state[1].hp);
 				console.log("state[0].hp: " + state[0].hp);
