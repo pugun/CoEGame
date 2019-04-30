@@ -1,9 +1,9 @@
 {
 	"development": {
-		"username": "root",
-		"password": "root",
-		"database": "coedb",
-		"host": "jipatha-wiki.ddns.net",
+		"username": "admuy",
+		"password": "xxx333",
+		"database": "coe",
+		"host": "165.22.240.130",
 		"dialect": "mysql",
 		"logging": false
 	},

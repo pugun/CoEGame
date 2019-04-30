@@ -271,7 +271,7 @@ router.post("/postGeo", isLoggedIn, (req, res) => {
 	var user = geoLocation.findOne({ id: req.user.id });
 	if(user === null) {
 		geoLocation.insert({
-			id: req.user.id ,
+			id: req.user.id,
 			lat: req.body.lat,
 			long: req.body.long
 		});
